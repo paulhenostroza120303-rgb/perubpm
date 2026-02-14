@@ -1,0 +1,13 @@
+{
+  "name": "perubpm-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm install",
+    "start": "echo 'No server needed'"
+  },
+  "dependencies": {
+    "googleapis": "^120.0.0"
+  }
+}

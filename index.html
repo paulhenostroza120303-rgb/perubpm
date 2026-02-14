@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeruBPM Exclusive</title>
+    <!-- ===============================
+SEO – PeruBPM Exclusive
+=============================== -->
+<meta name="description" content="PeruBPM Exclusive es una plataforma privada para DJs con packs VIP, remixes latinos, remixes peruanos, video remixes, membresías DJ y contenido profesional actualizado constantemente.">
+
+<meta name="keywords" content="PeruBPM, PeruBPM Exclusive, packs DJ, remixes latinos, remixes peruanos, video remixes, DJ Perú, DJ latino, música para DJs, packs VIP DJ, remix mp4">
+
+<meta name="author" content="PeruBPM">
+<meta name="robots" content="index, follow">
+<meta name="language" content="es">
+<link rel="canonical" href="https://perubpm.vercel.app">
+
+<!-- ===============================
+Open Graph – Facebook / WhatsApp
+=============================== -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="PeruBPM Exclusive | Plataforma Profesional para DJs">
+<meta property="og:description" content="Acceso exclusivo a packs DJ, remixes latinos, remixes peruanos y video remixes profesionales.">
+<meta property="og:image" content="icono.png">
+<meta property="og:url" content="https://perubpm.vercel.app">
+<meta property="og:site_name" content="PeruBPM Exclusive">
+<meta property="og:locale" content="es_PE">
+
+<!-- ===============================
+Twitter / X
+=============================== -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PeruBPM Exclusive | Packs y Remixes DJ">
+<meta name="twitter:description" content="Remixes latinos, remixes peruanos y video remixes exclusivos para DJs profesionales.">
+<meta name="twitter:image" content="icono.png">
+
+<!-- ===============================
+Mobile UI
+=============================== -->
+<meta name="theme-color" content="#020617">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="icon" type="image/png" href="icono.png">
+    <link rel="apple-touch-icon" href="icono.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root { --accent: #3b82f6; --bg: #020617; --card: #0f172a; }
+        body { background-color: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; letter-spacing: -0.02em; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); transition: 0.3s; }
+        .pack-card { background: var(--card); border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.4s; position: relative; overflow: hidden; cursor: pointer; border-radius: 2.5rem; }
+        .pack-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+        .item-row { background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.2s; }
+        .item-row:hover { background: rgba(30, 41, 59, 0.7); border-color: var(--accent); transform: translateX(5px); }
+        
+        .admin-controls { position: absolute; top: 12px; right: 12px; display: none; flex-direction: column; gap: 5px; opacity: 0; transition: 0.3s; z-index: 50; }
+        .is-admin .admin-controls { display: flex; }
+        .is-admin .pack-card:hover .admin-controls { opacity: 1; }
+        .admin-btn { padding: 6px 10px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; transition: 0.2s; text-align: center; width: 75px; }
+        .del-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .edit-btn { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .img-btn { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+        .loader-line { height: 3px; width: 100%; position: relative; overflow: hidden; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .loader-line::after { content: ''; position: absolute; left: -50%; height: 100%; width: 50%; background: var(--accent); animation: loading 1.5s infinite; }
+        @keyframes loading { 0% { left: -50%; } 100% { left: 100%; } }
+        
+        input, select, textarea { color-scheme: dark; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        .nav-tab { cursor: pointer; padding: 10px 20px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; transition: 0.3s; border: 1px solid transparent; white-space: nowrap; }
+        .nav-tab.active { background: var(--accent); color: white; }
+        .nav-tab:not(.active) { color: #64748b; border-color: rgba(255,255,255,0.05); }
+        .nav-tab:not(.active):hover { border-color: var(--accent); color: var(--accent); }
+
+        .month-divider { grid-column: 1 / -1; margin-top: 2rem; margin-bottom: 0.5rem; padding: 1rem 1.5rem; background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%); border-left: 4px solid var(--accent); border-radius: 0 1rem 1rem 0; }
+        .month-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+        @media (max-width: 1200px) { .month-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 900px) { .month-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 600px) { .month-grid { grid-template-columns: repeat(2, 1fr); } }
+        .search-hit-badge { background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 7px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; display: inline-block; }
+        .search-hit-badge.free { background: #10b981; }
+        .section-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); z-index: 10; }
+
+        /* ---- SISTEMA GRATUITO ---- */
+        .free-badge { position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #10b981, #059669); padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: uppercase; color: white; z-index: 10; letter-spacing: 0.1em; box-shadow: 0 0 12px rgba(16,185,129,0.4); }
+        .free-btn { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+        .free-btn:hover { background: rgba(16,185,129,0.3); }
+        .pack-card.is-free { border-color: rgba(16,185,129,0.2); }
+        .pack-card.is-free:hover { border-color: #10b981; }
+
+        /* Modal de email */
+        #emailModal { position: fixed; inset: 0; background: rgba(2,6,23,0.92); backdrop-filter: blur(12px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        #emailModal.hidden { display: none; }
+        .modal-box { background: #0f172a; border: 1px solid rgba(16,185,129,0.3); border-radius: 2rem; padding: 2.5rem; max-width: 420px; width: 100%; text-align: center; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- ====================== MODAL EMAIL PARA DESCARGA ====================== -->
+    <div id="emailModal" class="hidden">
+        <div class="modal-box">
+            <div id="emailModalIcon" class="text-4xl mb-4">📧</div>
+            <h3 id="emailModalTitle" class="text-xl font-black uppercase italic tracking-tighter mb-1">Descarga Gratuita</h3>
+            <p id="emailModalSub" class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-6">Deja tu correo para descargar gratis</p>
+            <input type="email" id="guestEmailInput" placeholder="TU CORREO AQUÍ..."
+                class="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-[11px] font-bold uppercase outline-none focus:border-green-500 mb-4 transition-all text-center tracking-widest">
+            <p id="emailModalError" class="text-red-400 text-[9px] font-black uppercase hidden mb-3">⚠️ Ingresa un correo válido</p>
+            <button id="emailModalBtn" onclick="confirmEmailDownload()" class="w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-widest mb-3"
+                style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+                ✅ Confirmar y Descargar
+            </button>
+            <button onclick="closeEmailModal()" class="w-full bg-slate-800 text-slate-400 py-3 rounded-xl text-[10px] font-black uppercase border border-slate-700">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <!-- ====================== MODAL NO ES VIP ====================== -->
+    <div id="vipModal" class="hidden">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9998]" onclick="closeVipModal()"></div>
+        <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-full max-w-md px-4">
+            <div class="bg-slate-900 border border-blue-500/30 rounded-3xl p-8 text-center">
+                <div class="text-5xl mb-4">🔐</div>
+                <h2 class="text-2xl font-black uppercase italic tracking-tighter mb-2 text-white">No eres <span class="text-blue-500">Miembro VIP</span></h2>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-6">Este contenido es exclusivo para miembros</p>
+                
+                <button onclick="showLoginFromVipModal()" class="w-full py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest mb-3" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white;">
+                    🔒 Iniciar Sesión VIP
+                </button>
+                
+                <button onclick="closeVipModal()" class="w-full bg-slate-800 text-slate-300 py-3 rounded-2xl text-[10px] font-black uppercase border border-slate-700 hover:bg-slate-700 transition-all">
+                    ← Seguir Viendo Contenido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================== LOGIN ====================== -->
+    <div id="loginSection" class="flex items-center justify-center min-h-screen">
+        <div class="glass p-12 rounded-[3rem] text-center max-w-sm w-full border border-white/5">
+            <h1 class="text-4xl font-black italic mb-2 tracking-tighter uppercase">PERUBPM <span class="text-blue-500">Exclusive</span></h1>
+            <p class="text-slate-500 text-[10px] uppercase tracking-[0.4em] mb-10 font-bold">Acceso Restringido</p>
+            <button onclick="handleLogin()" class="w-full bg-white text-black font-black py-4 rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3 text-xs uppercase">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/hf/google.svg" width="18"> Entrar con Google
+            </button>
+            <div id="loginLoader" class="hidden mt-6"><div class="loader-line"></div><p class="text-[9px] mt-2 text-slate-500 font-bold uppercase">Verificando acceso...</p></div>
+            <p id="loginError" class="text-red-500 text-[9px] mt-6 font-bold uppercase hidden">No tienes permiso para acceder</p>
+            <button onclick="backToCatalog()" class="mt-6 text-slate-500 text-[10px] font-bold uppercase hover:text-blue-400 transition-all">← Volver al Catálogo</button>
+        </div>
+    </div>
+
+    <div id="appSection" class="hidden p-6 md:p-12 max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-6">
+            <div class="text-center md:text-left">
+                <h1 onclick="location.reload()" class="text-3xl font-black italic cursor-pointer tracking-tighter uppercase">PERUBPM <span class="text-blue-500">Exclusive</span></h1>
+                <p id="userStatus" class="text-[10px] font-bold text-slate-500 uppercase mt-1 tracking-widest italic"></p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="BUSQUEDA GLOBAL..." class="bg-slate-900 border border-slate-800 px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest w-full outline-none focus:border-blue-500 transition-all">
+                    <div id="searchLoader" class="hidden absolute right-4 top-1/2 -translate-y-1/2">
+                        <div class="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="publicLoginBtn" onclick="switchToLogin()" class="btn-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase">🔐 Acceso VIP</button>
+                    <button id="adminUploadBtn" onclick="toggleView('admin')" class="btn-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase hidden">Administrar</button>
+                    <button id="logoutBtn" onclick="handleLogout()" class="bg-slate-800 text-slate-400 px-6 py-3 rounded-xl text-[10px] font-black uppercase border border-slate-700 hidden">Salir</button>
+                </div>
+            </div>
+        </header>
+
+        <nav id="sectionNav" class="flex gap-3 mb-10 overflow-x-auto pb-4 no-scrollbar">
+            <div onclick="changeSection('packs')" id="tab-packs" class="nav-tab active">Packs VIP</div>
+            <div onclick="changeSection('membresias')" id="tab-membresias" class="nav-tab">Membresías Perú</div>
+            <div onclick="changeSection('membresias_extranjeras')" id="tab-membresias_extranjeras" class="nav-tab">Membresías Extranjeras</div>
+            <div onclick="changeSection('video_remixes_latinos')" id="tab-video_remixes_latinos" class="nav-tab">Video Remixes Latinos</div>
+            <div onclick="changeSection('backups')" id="tab-backups" class="nav-tab">Backups 2026</div>
+            <div onclick="changeSection('editores_peruanos')" id="tab-editores_peruanos" class="nav-tab">Editores Peruanos</div>
+            <div onclick="changeSection('drive_privado')" id="tab-drive_privado" class="nav-tab">Drive Privado</div>
+        </nav>
+
+        <div id="musicSearchResults" class="hidden mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+            <h3 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-6 italic">Resultados Globales</h3>
+            <div id="musicHitsList" class="grid gap-2"></div>
+            <div class="h-px bg-white/5 w-full mt-10"></div>
+        </div>
+
+        <div id="view-gallery" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+
+        <div id="view-explorer" class="hidden animate-in fade-in duration-500">
+            <button onclick="goBack()" class="text-blue-500 text-[11px] font-black uppercase mb-10 tracking-widest hover:pl-2 transition-all">← VOLVER AL CATÁLOGO</button>
+            <div class="border-l-4 border-blue-600 pl-8 mb-12">
+                <h2 id="folderTitle" class="text-4xl md:text-6xl font-black uppercase italic tracking-tighter"></h2>
+            </div>
+            <div id="contentList" class="grid gap-3"></div>
+        </div>
+
+        <div id="view-admin" class="hidden max-w-4xl mx-auto">
+            
+            <!-- SINCRONIZADOR RECURSIVO - PRIMERO -->
+            <div class="glass p-10 rounded-[2.5rem] mb-8">
+                <h3 class="text-xl font-black italic uppercase mb-2">🔄 Sincronizador con Exploración Recursiva</h3>
+                <p class="text-[9px] text-slate-400 mb-6 uppercase">Explora automáticamente TODAS las subcarpetas sin importar la profundidad</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-slate-500 mb-2">Destino:</label>
+                        <select id="targetSection" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-[10px] font-bold uppercase outline-none focus:border-blue-500">
+                            <option value="packs">Packs VIP</option>
+                            <option value="membresias">Membresías Perú</option>
+                            <option value="membresias_extranjeras">Membresías Extranjeras</option>
+                            <option value="video_remixes_latinos">Video Remixes Latinos</option>
+                            <option value="backups">Backups 2026</option>
+                            <option value="editores_peruanos">Editores Peruanos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-slate-500 mb-2">Fijar Fecha (Día/Mes/Año):</label>
+                        <input type="date" id="customDate" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-[10px] font-bold uppercase outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-slate-500 mb-2">Imagen Portada (URL):</label>
+                        <input type="text" id="customImgUrl" placeholder="https://..." class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-[10px] font-bold uppercase outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <textarea id="jsonBox" class="w-full h-60 bg-black/40 rounded-2xl p-6 text-[10px] font-mono text-blue-100/70 border border-slate-800 focus:border-blue-500 mb-6 outline-none" placeholder='Pega el JSON de PeruBPM aquí...'></textarea>
+                
+                <button onclick="uploadPack()" id="upBtn" class="w-full btn-primary py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-blue-500/20">Iniciar Sincronización Recursiva</button>
+            </div>
+
+            <!-- GESTIÓN DE ACCESOS VIP -->
+            <div class="glass p-10 rounded-[2.5rem] mb-8 border border-blue-500/20">
+                <h3 class="text-xl font-black italic uppercase mb-6 text-blue-400">Gestión de Accesos VIP</h3>
+                
+                <div class="flex gap-4 mb-6">
+                    <input type="email" id="newUserEmail" placeholder="CORREO DEL NUEVO USUARIO" class="flex-1 bg-slate-900 border border-slate-800 p-4 rounded-xl text-[10px] font-bold uppercase outline-none focus:border-blue-500">
+                    <button onclick="addUser()" class="btn-primary text-white px-8 rounded-xl text-[10px] font-black uppercase">AGREGAR</button>
+                </div>
+
+                <div class="max-h-60 overflow-y-auto pr-2 custom-scroll">
+                    <div id="usersListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                </div>
+            </div>
+
+            <!-- CORREOS RECOLECTADOS -->
+            <div class="glass p-10 rounded-[2.5rem] mb-8 border border-green-500/20">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-xl font-black italic uppercase text-green-400">📧 Correos Recolectados</h3>
+                        <p class="text-[9px] text-slate-400 uppercase mt-1">Usuarios que descargaron packs gratuitos</p>
+                    </div>
+                    <button onclick="exportEmailsCSV()" class="bg-green-500/10 border border-green-500/30 text-green-400 px-6 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-green-500/20 transition-all">
+                        📥 Exportar CSV
+                    </button>
+                </div>
+                <div class="max-h-60 overflow-y-auto pr-2">
+                    <div id="guestEmailsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <p class="text-[10px] text-slate-500 italic p-2">Cargando correos...</p>
+                    </div>
+                </div>
+                <p id="emailsCount" class="text-[9px] text-slate-500 font-bold uppercase mt-4 text-right"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===============================
+// VARIABLES GLOBALES DEL PACK
+// ===============================
+let currentPackFiles = [];
+let currentPackName = "perubpm_pack";
+        // ============================================
+        // CONFIGURACIÓN DE FIREBASE
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgAWYxDqUYm0vzhi9e7AqbCJ96jeD_gfg",
+            authDomain: "perubpm-96377.firebaseapp.com",
+            databaseURL: "https://perubpm-96377-default-rtdb.firebaseio.com",
+            projectId: "perubpm-96377"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        let currentUserEmail = "";
+        let currentUserIsAdmin = false;
+        let currentSection = "packs";
+        
+        // Sistema Gratuito
+        let pendingDownloadUrl = "";
+        let pendingDownloadName = "";
+        let publicNavHistory = [];
+        
+        let globalData = {
+            packs: [],
+            membresias: [],
+            membresias_extranjeras: [],
+            video_remixes_latinos: [],
+            backups: [],
+            editores_peruanos: [],
+            drive_privado: []
+        };
+        let drivePrivadoFiles = [];
+        
+        const sectionLabels = {
+            packs: "VIP Pack",
+            membresias: "Membresía",
+            membresias_extranjeras: "Membresía Extranjera",
+            video_remixes_latinos: "Video Remix",
+            backups: "Backup",
+            editores_peruanos: "Editor Peruano",
+            drive_privado: "Drive Privado"
+        };
+
+        const rateLimits = new Map();
+        let searchTimeout = null;
+
+        // ============================================
+        // UTILIDADES DE SEGURIDAD
+        // ============================================
+
+        function validateImageUrl(url) {
+            if (!url || url.trim() === '') return true;
+            
+            try {
+                const urlObj = new URL(url);
+                const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+                const hasValidExt = allowedExtensions.some(ext => 
+                    url.toLowerCase().endsWith(ext)
+                );
+                
+                if (!hasValidExt) return false;
+                
+                const trustedDomains = ['perubpm.blob.core.windows.net'];
+                const isTrustedDomain = trustedDomains.some(domain => 
+                    urlObj.hostname.includes(domain)
+                );
+                
+                return isTrustedDomain;
+            } catch {
+                return false;
+            }
+        }
+
+        function sanitizePackData(data) {
+            const clean = {
+                name: String(data.name || 'Sin nombre').substring(0, 200),
+                slug: String(data.slug || '').substring(0, 100),
+                id: String(data.id || ''),
+                packages: Array.isArray(data.packages) ? data.packages.map(sanitizePackData) : undefined,
+                remixes: Array.isArray(data.remixes) ? data.remixes.map(sanitizeRemix) : undefined
+            };
+            
+            return clean;
+        }
+
+        function sanitizeRemix(remix) {
+            return {
+                name: String(remix.name || '').substring(0, 300),
+                referenceId: String(remix.referenceId || ''),
+                metadata: {
+                    size: Number(remix.metadata?.size) || 0
+                }
+            };
+        }
+
+        function checkRateLimit(action, maxCalls = 5, windowMs = 60000) {
+            const now = Date.now();
+            const key = `${currentUserEmail}-${action}`;
+            
+            if (!rateLimits.has(key)) {
+                rateLimits.set(key, []);
+            }
+            
+            const calls = rateLimits.get(key);
+            const recentCalls = calls.filter(time => now - time < windowMs);
+            
+            if (recentCalls.length >= maxCalls) {
+                return false;
+            }
+            
+            recentCalls.push(now);
+            rateLimits.set(key, recentCalls);
+            return true;
+        }
+
+        function validateDate(dateString) {
+            if (!dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                return { valid: false, message: "Formato inválido. Usa Año-Mes-Día (ej: 2026-02-06)" };
+            }
+            
+            const dateObj = new Date(dateString);
+            if (isNaN(dateObj.getTime())) {
+                return { valid: false, message: "Fecha inválida" };
+            }
+            
+            const year = dateObj.getFullYear();
+            if (year < 2020 || year > 2030) {
+                return { valid: false, message: "La fecha debe estar entre 2020 y 2030" };
+            }
+            
+            return { valid: true };
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function handleError(error, userMessage = "Ocurrió un error. Intenta nuevamente.") {
+            console.error('Error interno:', error);
+            alert(userMessage);
+        }
+
+        // ============================================
+        // AUTENTICACIÓN Y AUTORIZACIÓN
+        // ============================================
+
+        function handleLogin() { 
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                handleError(error, "Error al conectar con Google. Intenta nuevamente.");
+            });
+        }
+
+        function handleLogout() { 
+            auth.signOut().then(() => {
+                currentUserEmail = '';
+                currentUserIsAdmin = false;
+                forcePublicMode = true;
+                savedUserEmail = '';
+                savedUserAdmin = false;
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userAdmin');
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('appSection').classList.remove('hidden');
+                document.getElementById('publicLoginBtn').classList.remove('hidden');
+                document.getElementById('logoutBtn').classList.add('hidden');
+                document.getElementById('adminUploadBtn').classList.add('hidden');
+                document.getElementById('userStatus').innerText = "👁️ MODO VISOR - ACCESO PÚBLICO";
+                document.body.classList.remove('is-admin');
+                renderPacks(globalData[currentSection]);
+            }); 
+        }
+
+        auth.onAuthStateChanged(async user => {
+            // Si está en modo público, no procesar usuarios
+            if (forcePublicMode) {
+                console.log('Modo público - ignorando auth');
+                return;
+            }
+            
+            const loginLoader = document.getElementById('loginLoader');
+            const loginError = document.getElementById('loginError');
+
+            if (user) {
+                loginLoader.classList.remove('hidden');
+                loginError.classList.add('hidden');
+                
+                try {
+                    const MASTER_ADMIN = '7scasma@gmail.com';
+                    
+                    if (user.email === MASTER_ADMIN) {
+                        grantAccess(user, true);
+                        return;
+                    }
+
+                    const snapshot = await db.ref('authorized_users').once('value');
+                    const usersData = snapshot.val() || {};
+                    const authorizedEmails = Object.values(usersData);
+                    
+                    if (authorizedEmails.includes(user.email)) {
+                        grantAccess(user, false);
+                    } else {
+                        auth.signOut();
+                        loginLoader.classList.add('hidden');
+                        loginError.classList.remove('hidden');
+                        loginError.innerText = "TU CORREO NO ESTÁ AUTORIZADO.";
+                    }
+                } catch (error) {
+                    handleError(error, "Error de conexión a la base de datos.");
+                    auth.signOut();
+                }
+
+            } else {
+                loginLoader.classList.add('hidden');
+            }
+        });
+
+        function grantAccess(user, isAdmin) {
+            currentUserEmail = user.email;
+            currentUserIsAdmin = isAdmin;
+            forcePublicMode = false;
+            
+            // GUARDAR sesión en localStorage
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userAdmin', isAdmin ? 'true' : 'false');
+            savedUserEmail = user.email;
+            savedUserAdmin = isAdmin;
+            
+            console.log('🎉 Acceso concedido:', user.email, '- Admin:', isAdmin);
+            
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            document.getElementById('userStatus').innerText = isAdmin ? "ADMINISTRADOR MAESTRO" : "ACCESO VIP CONECTADO";
+            
+            // Ocultar botón público, mostrar logout
+            document.getElementById('publicLoginBtn').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+            
+            if (isAdmin) {
+                document.getElementById('adminUploadBtn').classList.remove('hidden');
+                document.body.classList.add('is-admin');
+                loadAuthorizedUsers();
+                loadGuestEmails();
+            }
+            
+            console.log('🚀 Iniciando carga de datos...');
+            
+            if (globalData.packs.length > 0) {
+                renderPacks(globalData[currentSection]);
+            } else {
+                startGlobalListeners();
+            }
+        }
+
+        // ============================================
+        // GESTIÓN DE USUARIOS (ADMIN)
+        // ============================================
+
+        function loadAuthorizedUsers() {
+            if (!currentUserIsAdmin) return;
+            
+            db.ref('authorized_users').on('value', snapshot => {
+                const usersContainer = document.getElementById('usersListContainer');
+                usersContainer.innerHTML = '';
+                const users = snapshot.val();
+                
+                if (users) {
+                    Object.keys(users).forEach(key => {
+                        const email = users[key];
+                        const div = document.createElement('div');
+                        div.className = "flex justify-between items-center bg-slate-900 p-3 rounded-lg border border-white/5";
+                        div.innerHTML = `
+                            <span class="text-[10px] font-bold text-slate-300 truncate">${email}</span>
+                            <button onclick="deleteUser('${key}')" class="text-[9px] font-black text-red-500 hover:bg-red-500/10 px-3 py-1 rounded ml-2 uppercase">Eliminar</button>
+                        `;
+                        usersContainer.appendChild(div);
+                    });
+                } else {
+                    usersContainer.innerHTML = '<p class="text-[10px] text-slate-500 italic p-2">No hay usuarios registrados</p>';
+                }
+            });
+        }
+
+        function addUser() {
+            if (!currentUserIsAdmin) {
+                alert("No tienes permisos para esta acción.");
+                return;
+            }
+            
+            if (!checkRateLimit('addUser', 3, 60000)) {
+                alert('⚠️ Demasiadas operaciones. Espera 1 minuto.');
+                return;
+            }
+            
+            const input = document.getElementById('newUserEmail');
+            const email = input.value.trim().toLowerCase();
+            
+            if (!email || !validateEmail(email)) { 
+                alert("Ingresa un correo válido."); 
+                return; 
+            }
+            
+            db.ref('authorized_users').push(email)
+                .then(() => { 
+                    alert("Usuario agregado correctamente."); 
+                    input.value = ""; 
+                })
+                .catch(error => handleError(error, "Error al agregar usuario."));
+        }
+
+        function deleteUser(key) {
+            if (!currentUserIsAdmin) {
+                alert("No tienes permisos para esta acción.");
+                return;
+            }
+            
+            if (confirm("¿Eliminar usuario?")) {
+                db.ref('authorized_users').child(key).remove()
+                    .catch(error => handleError(error, "Error al eliminar usuario."));
+            }
+        }
+
+        // ============================================
+        // SISTEMA DE DATOS Y LISTENERS
+        // ============================================
+
+        function startGlobalListeners() {
+            const sections = ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos'];
+            console.log('🔵 Iniciando listeners globales...');
+            
+            sections.forEach(sec => {
+                db.ref(sec).on('value', snap => {
+                    const data = snap.val();
+                    let parsed = [];
+                    
+                    console.log(`📊 Datos recibidos de ${sec}:`, data ? Object.keys(data).length + ' items' : 'vacío');
+                    
+                    if(data) {
+                        Object.keys(data).forEach(id => {
+                            parsed.push({ id, ...data[id], section: sec });
+                        });
+                        parsed.sort((a, b) => new Date(b.originalDate) - new Date(a.originalDate));
+                    }
+                    
+                    globalData[sec] = parsed;
+                    console.log(`✅ ${sec} cargado:`, parsed.length, 'packs');
+                    
+                    if (currentSection === sec && document.getElementById('searchInput').value.trim().length < 2) {
+                        console.log(`🎨 Renderizando ${sec}...`);
+                        renderPacks(globalData[currentSection]);
+                    } else if (document.getElementById('searchInput').value.trim().length >= 2) {
+                        filterPacks();
+                    }
+                }, error => {
+                    console.error(`❌ Error leyendo ${sec}:`, error);
+                    handleError(error, `Error al cargar datos de ${sec}`);
+                });
+            });
+            
+            // Cargar Drive Privado
+            loadDrivePrivado();
+        }
+        
+        async function loadDrivePrivado() {
+            try {
+                // En desarrollo local, la API no está disponible
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.log('📁 Drive Privado: API no disponible en desarrollo local');
+                    drivePrivadoFiles = [];
+                    return;
+                }
+                
+                const response = await fetch('/api/drive-list');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('La respuesta no es JSON válido');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    drivePrivadoFiles = data.files;
+                    console.log('📁 Drive Privado cargado:', drivePrivadoFiles.length, 'archivos');
+                } else {
+                    console.error('Error cargando Drive:', data.error);
+                    drivePrivadoFiles = [];
+                }
+            } catch (error) {
+                console.error('Error en loadDrivePrivado:', error);
+                // No mostrar error al usuario, solo log en consola
+                drivePrivadoFiles = [];
+            }
+        }
+
+        function changeSection(section) {
+            currentSection = section;
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${section}`)?.classList.add('active');
+            
+            document.getElementById('searchInput').value = "";
+            document.getElementById('musicSearchResults').classList.add('hidden');
+            toggleView('gallery');
+            
+            // Reset gallery display for normal sections
+            const gallery = document.getElementById('view-gallery');
+            gallery.style.display = '';
+            
+            if (section === 'drive_privado') {
+                renderDrivePrivado();
+            } else {
+                renderPacks(globalData[currentSection]);
+            }
+        }
+        
+        function renderDrivePrivado() {
+            const container = document.getElementById('view-gallery');
+            container.innerHTML = '';
+            container.style.display = 'block';
+            
+            if (!drivePrivadoFiles || drivePrivadoFiles.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">CARGANDO ARCHIVOS...</div>';
+                return;
+            }
+            
+            // Contenedor estilo Explorer
+            const listContainer = document.createElement('div');
+            listContainer.style.cssText = 'background: rgba(15,23,42,0.8); border-radius: 1.5rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);';
+            
+            // Header
+            const header = document.createElement('div');
+            header.style.cssText = 'display: grid; grid-template-columns: 50px 1fr 120px; padding: 1rem 1.5rem; background: rgba(30,41,59,0.5); border-bottom: 1px solid rgba(255,255,255,0.05);';
+            header.innerHTML = `
+                <span class="text-[9px] font-black uppercase text-slate-500">TIPO</span>
+                <span class="text-[9px] font-black uppercase text-slate-500">NOMBRE</span>
+                <span class="text-[9px] font-black uppercase text-slate-500 text-right">ACCIÓN</span>
+            `;
+            listContainer.appendChild(header);
+            
+            // Archivos
+            drivePrivadoFiles.forEach(file => {
+                const isFolder = file.type === 'folder';
+                const size = file.size ? formatFileSize(file.size) : '';
+                const ext = file.name.split('.').pop().toLowerCase();
+                const icon = getFileIcon(ext, isFolder);
+                
+                const row = document.createElement('div');
+                row.style.cssText = 'display: grid; grid-template-columns: 50px 1fr 120px; padding: 0.75rem 1.5rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.2s;';
+                row.onmouseover = () => row.style.background = 'rgba(30,41,59,0.5)';
+                row.onmouseout = () => row.style.background = 'transparent';
+                row.innerHTML = `
+                    <div style="font-size: 24px;">${icon}</div>
+                    <div style="min-width: 0;">
+                        <div class="text-[11px] font-bold uppercase truncate" style="color: #f1f5f9;">${file.name}</div>
+                        <div class="text-[8px] text-slate-500">${isFolder ? 'Carpeta' : size}</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] font-black uppercase" style="color: #3b82f6; background: rgba(59,130,246,0.1); padding: 6px 12px; border-radius: 8px;">
+                            ${isFolder ? 'ABRIR' : 'DESCARGAR'}
+                        </span>
+                    </div>
+                `;
+                
+                if (isFolder) {
+                    row.onclick = () => openDriveFolder(file.id);
+                } else {
+                    row.onclick = () => downloadDriveFile(file.id, file.name);
+                }
+                
+                listContainer.appendChild(row);
+            });
+            
+            container.appendChild(listContainer);
+        }
+        
+        function formatFileSize(bytes) {
+            if (!bytes) return '';
+            const mb = bytes / (1024 * 1024);
+            if (mb >= 1) return mb.toFixed(2) + ' MB';
+            const kb = bytes / 1024;
+            return kb.toFixed(2) + ' KB';
+        }
+        
+        function getFileIcon(ext, isFolder) {
+            if (isFolder) return '📁';
+            const icons = {
+                'mp3': '🎵', 'wav': '🎵', 'flac': '🎵', 'aac': '🎵', 'm4a': '🎵',
+                'mp4': '🎬', 'mov': '🎬', 'avi': '🎬', 'mkv': '🎬',
+                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'webp': '🖼️',
+                'zip': '📦', 'rar': '📦', '7z': '📦',
+                'pdf': '📕', 'doc': '📄', 'docx': '📄', 'xls': '📊', 'xlsx': '📊',
+                'txt': '📝', 'json': '💻', 'js': '💻', 'html': '💻', 'css': '💻'
+            };
+            return icons[ext] || '📄';
+        }
+        
+        let driveFolderStack = [];
+        
+        async function openDriveFolder(folderId) {
+            driveFolderStack.push(folderId);
+            try {
+                const response = await fetch(`/api/drive-list?folderId=${folderId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderDriveFiles(data.files);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function goBackDrive() {
+            if (driveFolderStack.length > 1) {
+                driveFolderStack.pop();
+                const parentFolder = driveFolderStack[driveFolderStack.length - 1];
+                openDriveFolder(parentFolder);
+            } else {
+                driveFolderStack = [];
+                renderDrivePrivado();
+            }
+        }
+        
+        function renderDriveFiles(files) {
+            const container = document.getElementById('view-gallery');
+            container.innerHTML = '';
+            container.style.display = 'block';
+            
+            // Botón volver
+            if (driveFolderStack.length > 1) {
+                const backBtn = document.createElement('div');
+                backBtn.style.cssText = 'cursor: pointer; padding: 1rem 1.5rem; color: #3b82f6; font-size: 11px; font-weight: 800; text-transform: uppercase;';
+                backBtn.innerHTML = '← VOLVER';
+                backBtn.onclick = goBackDrive;
+                container.appendChild(backBtn);
+            }
+            
+            // Contenedor estilo Explorer
+            const listContainer = document.createElement('div');
+            listContainer.style.cssText = 'background: rgba(15,23,42,0.8); border-radius: 1.5rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);';
+            
+            // Header
+            const header = document.createElement('div');
+            header.style.cssText = 'display: grid; grid-template-columns: 50px 1fr 120px; padding: 1rem 1.5rem; background: rgba(30,41,59,0.5); border-bottom: 1px solid rgba(255,255,255,0.05);';
+            header.innerHTML = `
+                <span class="text-[9px] font-black uppercase text-slate-500">TIPO</span>
+                <span class="text-[9px] font-black uppercase text-slate-500">NOMBRE</span>
+                <span class="text-[9px] font-black uppercase text-slate-500 text-right">ACCIÓN</span>
+            `;
+            listContainer.appendChild(header);
+            
+            files.forEach(file => {
+                const isFolder = file.type === 'folder';
+                const size = file.size ? formatFileSize(file.size) : '';
+                const ext = file.name.split('.').pop().toLowerCase();
+                const icon = getFileIcon(ext, isFolder);
+                
+                const row = document.createElement('div');
+                row.style.cssText = 'display: grid; grid-template-columns: 50px 1fr 120px; padding: 0.75rem 1.5rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.2s;';
+                row.onmouseover = () => row.style.background = 'rgba(30,41,59,0.5)';
+                row.onmouseout = () => row.style.background = 'transparent';
+                row.innerHTML = `
+                    <div style="font-size: 24px;">${icon}</div>
+                    <div style="min-width: 0;">
+                        <div class="text-[11px] font-bold uppercase truncate" style="color: #f1f5f9;">${file.name}</div>
+                        <div class="text-[8px] text-slate-500">${isFolder ? 'Carpeta' : size}</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] font-black uppercase" style="color: #3b82f6; background: rgba(59,130,246,0.1); padding: 6px 12px; border-radius: 8px;">
+                            ${isFolder ? 'ABRIR' : 'DESCARGAR'}
+                        </span>
+                    </div>
+                `;
+                
+                if (isFolder) {
+                    row.onclick = () => openDriveFolder(file.id);
+                } else {
+                    row.onclick = () => downloadDriveFile(file.id, file.name);
+                }
+                
+                listContainer.appendChild(row);
+            });
+            
+            container.appendChild(listContainer);
+        }
+        
+        function downloadDriveFile(fileId, fileName) {
+            // Usa la API con Service Account (descarga sin límites)
+            window.open(`/api/drive-download?fileId=${fileId}`, '_blank');
+        }
+
+        function toggleView(view) {
+            ['gallery', 'explorer', 'admin'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            if(view !== 'gallery') document.getElementById('musicSearchResults').classList.add('hidden');
+        }
+
+        // ============================================
+        // RENDERIZADO DE PACKS
+        // ============================================
+
+        function renderPacks(packsArray) {
+            const grid = document.getElementById('view-gallery');
+            grid.innerHTML = '';
+            
+            console.log('🎨 Renderizando packs:', packsArray ? packsArray.length : 0);
+            
+            if(!packsArray || packsArray.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center text-slate-500 text-xs mt-10">NO HAY PACKS DISPONIBLES</div>';
+                console.log('⚠️ No hay packs para mostrar');
+                return;
+            }
+
+            const imageMap = {
+                "dj city latino": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe5dd32f460477bca687da.jpg",
+                "dj city": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe5dd32f460477bca687da.jpg",
+                "rompe discoteca": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe624d2f460477bca687e3.jpg",
+                "just play": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe610a2f460477bca687df.jpg",
+                "latin remixes": "https://perubpm.blob.core.windows.net/static/assets/categories/68fd936a6f8c5f58eb8a965d.jpg",
+                "dale mas bajo": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe5b652f460477bca687d9.jpg",
+                "bpm latino": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe59032f460477bca687d6.jpg",
+                "latin box": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe61502f460477bca687e0.jpg",
+                "urban zone": "https://perubpm.blob.core.windows.net/static/assets/categories/6933ecf34a14be5b3b3c32a8.jpg",
+                "unlimited latin": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe63092f460477bca687e5.jpg",
+                "cuban pool": "https://perubpm.blob.core.windows.net/static/assets/categories/6933ee8a4a14be5b3b3c32a9.jpg",
+                "heavy hits": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe602b2f460477bca687dd.jpg",
+                "europa remix": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe5f5d2f460477bca687db.jpg",
+                "extended latino": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe5fbc2f460477bca687dc.jpg",
+                "pro latin remix": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe61ff2f460477bca687e2.jpg",
+                "themashup": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe62912f460477bca687e4.jpg",
+                "the mashup": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe62912f460477bca687e4.jpg",
+                "especial pack": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe61b92f460477bca687e1.jpg",
+                "cuba remixes": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe5b052f460477bca687d8.jpg",
+                "8th wonder": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe56b82f460477bca687d4.jpg",
+                "remix mp4": "https://perubpm.blob.core.windows.net/static/assets/categories/691544ba59d19a6611417b6b.jpg",
+                "latin videos": "https://perubpm.blob.core.windows.net/static/assets/categories/6915448459d19a6611417b67.jpg",
+                "latinos unidos": "https://perubpm.blob.core.windows.net/static/assets/categories/6915449259d19a6611417b68.jpg",
+                "maxvidz": "https://perubpm.blob.core.windows.net/static/assets/categories/6915449f59d19a6611417b69.jpg",
+                "otros": "https://perubpm.blob.core.windows.net/static/assets/categories/68fe61b92f460477bca687e1.jpg",
+                "aldo cueva": "https://perubpm.blob.core.windows.net/static/assets/categories/69383e7bfe39b332dc28ad80.jpg",
+                "miller": "https://perubpm.blob.core.windows.net/static/assets/categories/69346e714a14be5b3b3c32ae.jpg",
+                "luamix": "https://perubpm.blob.core.windows.net/static/assets/categories/6934d741fe39b332dc28ad77.jpg",
+                "capo": "https://perubpm.blob.core.windows.net/static/assets/categories/6932681f48898f3f4159e61e.jpg",
+                "deyvid": "https://perubpm.blob.core.windows.net/static/assets/categories/69382f67fe39b332dc28ad7c.jpg",
+                "joel music": "https://perubpm.blob.core.windows.net/static/assets/categories/6934cdebfe39b332dc28ad76.jpg"
+            };
+
+            let lastMonthLabel = "";
+            let isSearchMode = document.getElementById('searchInput').value.trim().length >= 2;
+            let monthGroups = {};
+
+            packsArray.forEach(item => {
+                const pack = item.data || item;
+                const packNameLower = (pack.name || "").toLowerCase();
+                const itemDate = new Date(item.originalDate || Date.now());
+                const monthLabel = itemDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase();
+                const fullDateLabel = itemDate.toLocaleDateString('es-ES', {day:'2-digit', month:'short', year: 'numeric'}).toUpperCase();
+                
+                if (!monthGroups[monthLabel]) {
+                    monthGroups[monthLabel] = [];
+                }
+                monthGroups[monthLabel].push({ item, packNameLower, fullDateLabel });
+            });
+
+            const sortedMonths = Object.keys(monthGroups).sort((a, b) => {
+                const dateA = new Date(monthGroups[a][0].item.originalDate);
+                const dateB = new Date(monthGroups[b][0].item.originalDate);
+                return dateB - dateA;
+            });
+
+            let firstMonth = true;
+            sortedMonths.forEach(monthLabel => {
+                const items = monthGroups[monthLabel];
+                const isFirst = firstMonth;
+                firstMonth = false;
+                
+                const divider = document.createElement('div');
+                divider.className = "month-divider";
+                divider.style = "grid-column: 1 / -1; cursor: pointer; display: flex; justify-content: space-between; align-items: center;";
+                divider.innerHTML = `
+                    <h3 class="text-xs font-black italic tracking-[0.3em] text-blue-400">${monthLabel}</h3>
+                    <span class="text-blue-400 text-xs" id="arrow-${monthLabel.replace(/\s/g, '-')}">${isFirst ? '▼' : '▶'}</span>
+                `;
+                divider.onclick = function() {
+                    const container = document.getElementById('month-' + monthLabel.replace(/\s/g, '-'));
+                    const arrow = document.getElementById('arrow-' + monthLabel.replace(/\s/g, '-'));
+                    if (container.style.display === 'none') {
+                        container.style.display = 'grid';
+                        arrow.textContent = '▼';
+                    } else {
+                        container.style.display = 'none';
+                        arrow.textContent = '▶';
+                    }
+                };
+                grid.appendChild(divider);
+
+                const monthContainer = document.createElement('div');
+                monthContainer.id = 'month-' + monthLabel.replace(/\s/g, '-');
+                monthContainer.className = 'month-grid';
+                monthContainer.style.display = isFirst ? 'grid' : 'none';
+                monthContainer.style.gridColumn = '1 / -1';
+                
+                items.forEach(({ item, packNameLower, fullDateLabel }) => {
+                    const pack = item.data || item;
+                    let coverUrl = item.customImage || "";
+                    if (!coverUrl) {
+                        for (const key in imageMap) { 
+                            if (packNameLower.includes(key)) { 
+                                coverUrl = imageMap[key]; 
+                                break; 
+                            } 
+                        }
+                    }
+                    if (!coverUrl) coverUrl = imageMap["otros"];
+
+                    const sectionName = sectionLabels[item.section] || "PACK";
+                    const isFreePack = item.isFree;
+                    
+                    const div = document.createElement('div');
+                    div.className = `pack-card p-4${isFreePack ? ' is-free' : ''}`;
+                    div.innerHTML = `
+                        ${isFreePack ? '<div class="free-badge">🆓 Gratis</div>' : '<div class="section-badge">' + sectionName + '</div>'}
+                        <div class="admin-controls" id="admin-ctrl-${item.id}"></div>
+                        <div onclick="openPackById('${item.section}', '${item.id}', ${isFreePack})">
+                            <div class="aspect-square bg-slate-900 rounded-3xl mb-6 border border-white/5 overflow-hidden">
+                                <img src="${coverUrl}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='${imageMap["otros"]}'">
+                            </div>
+                            <h4 class="text-[11px] font-black uppercase truncate">${pack.name || 'Sin nombre'}</h4>
+                            <div class="flex justify-between items-center mt-3">
+                                <p class="text-[8px] ${isFreePack ? 'text-green-400' : 'text-blue-500'} font-black uppercase tracking-widest italic">${isFreePack ? 'Ver y Descargar' : 'Ver Contenido'}</p>
+                                <span class="text-[9px] text-slate-400 font-black uppercase">${fullDateLabel}</span>
+                            </div>
+                        </div>
+                    `;
+                    monthContainer.appendChild(div);
+
+                    const ctrl = div.querySelector('#admin-ctrl-' + item.id);
+                    if (ctrl) {
+                        const btnFree = document.createElement('button');
+                        btnFree.className = 'admin-btn free-btn';
+                        btnFree.textContent = item.isFree ? '🔒 QUITAR FREE' : '🆓 Gratis';
+                        btnFree.onclick = (e) => toggleFree(item.section, item.id, !!item.isFree, e);
+                        ctrl.appendChild(btnFree);
+
+                        if (item.isFree) {
+                            const btnDrive = document.createElement('button');
+                            btnDrive.className = 'admin-btn';
+                            btnDrive.textContent = '📁 DRIVE';
+                            btnDrive.style.cssText = 'background:rgba(250,204,21,0.1);color:#facc15;border:1px solid rgba(250,204,21,0.3);width:75px;padding:6px 10px;border-radius:8px;font-size:8px;font-weight:800;text-transform:uppercase;';
+                            btnDrive.onclick = (e) => editDriveLink(item.section, item.id, item.driveLink || '', e);
+                            ctrl.appendChild(btnDrive);
+                        }
+
+                        const btnFecha = document.createElement('button');
+                        btnFecha.className = 'admin-btn edit-btn';
+                        btnFecha.textContent = 'FECHA';
+                        btnFecha.onclick = (e) => editPackDate(item.section, item.id, item.originalDate, e);
+                        ctrl.appendChild(btnFecha);
+
+                        const btnImg = document.createElement('button');
+                        btnImg.className = 'admin-btn img-btn';
+                        btnImg.textContent = 'IMAGEN';
+                        btnImg.onclick = (e) => editPackImage(item.section, item.id, coverUrl, e);
+                        ctrl.appendChild(btnImg);
+
+                        const btnDel = document.createElement('button');
+                        btnDel.className = 'admin-btn del-btn';
+                        btnDel.textContent = 'BORRAR';
+                        btnDel.onclick = (e) => deletePack(item.section, item.id, e);
+                        ctrl.appendChild(btnDel);
+                    }
+                });
+                
+                grid.appendChild(monthContainer);
+            });
+        }
+
+        function openPackById(section, id, isFree = false) {
+            const item = globalData[section]?.find(p => p.id === id);
+            if(item) openFolder(item.data, isFree || item.isFree);
+        }
+
+        // ============================================
+        // BÚSQUEDA CON DEBOUNCE
+        // ============================================
+
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(filterPacks, 300);
+        }
+
+        async function filterPacks() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const musicSection = document.getElementById('musicSearchResults');
+            const musicList = document.getElementById('musicHitsList');
+            const loader = document.getElementById('searchLoader');
+            
+            if (query.length < 2) {
+                musicSection.classList.add('hidden');
+                renderPacks(globalData[currentSection]);
+                return;
+            }
+
+            loader.classList.remove('hidden');
+            await new Promise(r => setTimeout(r, 100));
+
+            let allCombined = [
+                ...globalData.packs,
+                ...globalData.membresias,
+                ...globalData.membresias_extranjeras,
+                ...globalData.video_remixes_latinos,
+                ...globalData.backups,
+                ...globalData.editores_peruanos
+            ];
+
+            const filteredPacks = allCombined.filter(item => 
+                item.data.name.toLowerCase().includes(query)
+            );
+            
+            let foundMusic = [];
+            
+            if (query.length >= 3) {
+                allCombined.forEach(packItem => {
+                    const p = packItem.data;
+                    const originLabel = sectionLabels[packItem.section];
+                    const isFreePack = packItem.isFree;
+
+                    if (p.remixes) {
+                        p.remixes.forEach(r => {
+                            if (r.name.toLowerCase().includes(query)) 
+                                foundMusic.push({ ...r, packName: p.name, section: originLabel, isFree: isFreePack });
+                        });
+                    }
+                    if (p.packages) {
+                        p.packages.forEach(sub => {
+                            if (sub.remixes) {
+                                sub.remixes.forEach(r => {
+                                    if (r.name.toLowerCase().includes(query)) 
+                                        foundMusic.push({ ...r, packName: `${p.name} > ${sub.name}`, section: originLabel, isFree: isFreePack });
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            renderPacks(filteredPacks);
+            loader.classList.add('hidden');
+
+            if (foundMusic.length > 0) {
+                musicSection.classList.remove('hidden');
+                musicList.innerHTML = foundMusic.slice(0, 50).map(m => {
+                    let actionBtn;
+                    const refId = m.referenceId;
+                    const fileName = encodeURIComponent(m.name);
+                    
+                    if (currentUserEmail) {
+                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-blue-600/20 text-blue-400 px-6 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all">Descargar</button>`;
+                    } else if (m.isFree) {
+                        actionBtn = `<button onclick="requestEmailForDownload('${refId}', '${fileName}', event)" class="bg-green-600/20 text-green-400 px-6 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">🆓 Gratis</button>`;
+                    } else {
+                        actionBtn = `<button onclick="switchToLogin()" class="bg-slate-700/20 text-slate-400 px-6 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-slate-600 hover:text-white transition-all border border-slate-600">🔒 VIP</button>`;
+                    }
+                    
+                    return `
+                    <div class="item-row p-4 rounded-xl flex justify-between items-center gap-4">
+                        <div class="truncate">
+                            <span class="search-hit-badge${m.isFree ? ' free' : ''}">${m.section}${m.isFree ? ' 🆓' : ''}</span>
+                            <h5 class="text-[10px] font-black uppercase truncate">${m.name}</h5>
+                            <p class="text-[7px] text-slate-500 font-bold uppercase truncate">${m.packName}</p>
+                        </div>
+                        ${actionBtn}
+                    </div>
+                `}).join('');
+            } else {
+                musicSection.classList.add('hidden');
+            }
+        }
+
+        // ============================================
+        // FETCH DIRECTO SIN PROXIES (MÁS CONFIABLE)
+        // ============================================
+
+        async function fetchWithRetry(url, retries = 3) {
+    console.log(`🔄 Fetching: ${url}`);
+
+    for (let i = 0; i < retries; i++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            const response = await fetch(url, {
+                signal: controller.signal,
+                headers: { "Accept": "application/json" }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            console.log("✅ Fetch directo exitoso");
+            return await response.json();
+
+        } catch (err) {
+            console.warn(`❌ Intento directo ${i + 1} falló`);
+
+            // Último intento → usar proxy de Vercel
+            if (i === retries - 1) {
+                console.log("🔁 Usando proxy de Vercel...");
+                const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+                const proxyRes = await fetch(proxyUrl);
+
+                if (!proxyRes.ok) {
+                    throw new Error("Proxy Vercel falló");
+                }
+
+                console.log("✅ Fetch exitoso vía proxy");
+                return await proxyRes.json();
+            }
+
+            await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+        }
+    }
+}
+        // ============================================
+        // EXPLORACIÓN RECURSIVA DE PAQUETES
+        // ============================================
+
+        async function fetchPackageContents(packageId, depth = 0) {
+            console.log(`${'  '.repeat(depth)}📂 Explorando paquete: ${packageId} (nivel ${depth})`);
+            
+            try {
+                const detail = await fetchWithRetry(`https://api.perubpm.com/catalog/packages/folder/${packageId}`);
+                
+                if (detail.remixes && detail.remixes.length > 0) {
+                    console.log(`${'  '.repeat(depth)}🎵 Encontrados ${detail.remixes.length} remixes`);
+                    return detail.remixes;
+                }
+                
+                if (detail.packages && detail.packages.length > 0) {
+                    console.log(`${'  '.repeat(depth)}📁 Encontradas ${detail.packages.length} subcarpetas, explorando...`);
+                    
+                    let allRemixes = [];
+                    for (const subPackage of detail.packages) {
+                        await new Promise(r => setTimeout(r, 1000));
+                        const subRemixes = await fetchPackageContents(subPackage.id, depth + 1);
+                        allRemixes = allRemixes.concat(subRemixes);
+                    }
+                    
+                    console.log(`${'  '.repeat(depth)}✅ Total acumulado: ${allRemixes.length} remixes`);
+                    return allRemixes;
+                }
+                
+                console.log(`${'  '.repeat(depth)}⚠️ Carpeta vacía`);
+                return [];
+                
+            } catch (error) {
+                console.error(`${'  '.repeat(depth)}❌ Error explorando paquete ${packageId}:`, error);
+                return [];
+            }
+        }
+
+        async function processPackageRecursive(packData, depth = 0) {
+            console.log(`${'  '.repeat(depth)}🔍 Procesando: ${packData.name} (nivel ${depth})`);
+            
+            if (packData.packages && packData.packages.length > 0) {
+                console.log(`${'  '.repeat(depth)}📁 Tiene ${packData.packages.length} subcarpetas`);
+                
+                for (let sub of packData.packages) {
+                    await new Promise(r => setTimeout(r, 1500));
+                    console.log(`${'  '.repeat(depth)}  📂 Explorando subcarpeta: ${sub.name}`);
+                    
+                    const subRemixes = await fetchPackageContents(sub.id, depth + 1);
+                    sub.remixes = subRemixes;
+                    
+                    console.log(`${'  '.repeat(depth)}  ✅ ${sub.name}: ${subRemixes.length} archivos`);
+                }
+            }
+            
+            if ((!packData.packages || packData.packages.length === 0) && packData.id) {
+                console.log(`${'  '.repeat(depth)}🎵 Obteniendo remixes directos...`);
+                const remixes = await fetchPackageContents(packData.id, depth);
+                packData.remixes = remixes;
+                console.log(`${'  '.repeat(depth)}✅ ${remixes.length} remixes obtenidos`);
+            }
+            
+            return packData;
+        }
+
+        // ============================================
+        // SUBIDA DE PACKS CON RECURSIÓN
+        // ============================================
+
+        async function uploadPack() {
+            if (!currentUserIsAdmin) {
+                alert("No tienes permisos para esta acción.");
+                return;
+            }
+            
+            
+            const target = document.getElementById('targetSection').value;
+            const jsonText = document.getElementById('jsonBox').value.trim();
+            const manualDate = document.getElementById('customDate').value;
+            const customImg = document.getElementById('customImgUrl').value.trim();
+            
+            if(!jsonText) {
+                alert("Ingresa el JSON primero.");
+                return;
+            }
+            
+            if (customImg && !validateImageUrl(customImg)) {
+                alert("⚠️ La URL de imagen no es válida o no es de un dominio confiable.");
+                return;
+            }
+            
+            const btn = document.getElementById('upBtn');
+            const statusLabel = document.getElementById('statusLabel');
+            const statusArea = document.getElementById('statusArea');
+
+            try {
+                let items = JSON.parse(jsonText).content || JSON.parse(jsonText);
+                if(!Array.isArray(items)) items = [items];
+                
+                btn.disabled = true;
+                statusArea.classList.remove('hidden');
+                
+                console.log(`\n${'='.repeat(60)}`);
+                console.log(`📦 SINCRONIZACIÓN RECURSIVA INICIADA`);
+                console.log(`📊 Total de packs a procesar: ${items.length}`);
+                console.log(`🎯 Destino: ${target}`);
+                console.log(`${'='.repeat(60)}\n`);
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    statusLabel.innerText = `SINCRONIZANDO: ${item.slug || 'ITEM'} (${i+1}/${items.length})`;
+                    
+                    console.log(`\n${'─'.repeat(60)}`);
+                    console.log(`🔄 [${i+1}/${items.length}] Procesando: ${item.slug}`);
+                    console.log(`${'─'.repeat(60)}\n`);
+                    
+                    try {
+                        console.log(`📡 Paso 1: Obteniendo información del pack...`);
+                        const packData = await fetchWithRetry(`https://api.perubpm.com/catalog/packages/slug/${item.slug}`);
+                        console.log(`✅ Pack obtenido: ${packData.name}`);
+                        
+                        console.log(`\n🔍 Paso 2: Explorando estructura completa (recursivo)...`);
+                        const processedPack = await processPackageRecursive(packData);
+                        
+                        let totalFiles = 0;
+                        const countFiles = (pkg) => {
+                            if (pkg.remixes) totalFiles += pkg.remixes.length;
+                            if (pkg.packages) pkg.packages.forEach(countFiles);
+                        };
+                        countFiles(processedPack);
+                        
+                        console.log(`\n📊 Resumen de exploración:`);
+                        console.log(`   📁 Paquetes encontrados: ${processedPack.packages ? processedPack.packages.length : 0}`);
+                        console.log(`   🎵 Total de archivos: ${totalFiles}`);
+                        
+                        console.log(`\n🧹 Paso 3: Limpiando datos...`);
+                        const sanitized = sanitizePackData(processedPack);
+                        
+                        let finalDate = (manualDate) ? `${manualDate}T12:00:00Z` : new Date().toISOString();
+                        
+                        console.log(`\n💾 Paso 4: Guardando en Firebase...`);
+                        await db.ref(target).push({
+                            data: sanitized,
+                            originalDate: finalDate,
+                            customImage: customImg || null,
+                            timestamp: Date.now()
+                        });
+                        
+                        console.log(`\n✅ ${item.slug} SINCRONIZADO EXITOSAMENTE`);
+                        console.log(`   📦 Pack completo guardado en: ${target}`);
+                        console.log(`   🎵 ${totalFiles} archivos incluidos\n`);
+                        
+                        await new Promise(r => setTimeout(r, 1000)); 
+                        
+                    } catch (err) {
+                        console.error(`\n❌ ERROR EN ${item.slug}:`, err);
+                        console.error(`📝 Detalles:`, err.message);
+                        
+                        const continuar = confirm(
+                            `❌ Error procesando "${item.slug}":\n\n` +
+                            `${err.message}\n\n` +
+                            `Procesados: ${i}/${items.length}\n` +
+                            `¿Continuar con los siguientes packs?`
+                        );
+                        
+                        if (!continuar) {
+                            console.log(`\n⚠️ Sincronización cancelada por el usuario`);
+                            break;
+                        }
+                    }
+                }
+                
+                console.log(`\n${'='.repeat(60)}`);
+                console.log(`✅ SINCRONIZACIÓN RECURSIVA COMPLETADA`);
+                console.log(`${'='.repeat(60)}\n`);
+                
+                alert("✅ Sincronización Completa\n\nRevisa la consola (F12) para ver detalles de la exploración");
+                statusArea.classList.add('hidden');
+                document.getElementById('jsonBox').value = "";
+                document.getElementById('customImgUrl').value = "";
+                changeSection(target);
+                
+            } catch (e) { 
+                console.error('\n❌ ERROR GENERAL:', e);
+                handleError(e, "JSON Inválido o error de formato."); 
+            }
+            
+            btn.disabled = false;
+        }
+
+        // ============================================
+        // NAVEGACIÓN DE CARPETAS
+        // ============================================
+
+        let navHistory = [];
+        
+        function goBack() { 
+            navHistory.pop(); 
+            if (navHistory.length === 0) {
+                currentPackIsFree = false;
+                toggleView('gallery'); 
+            } else {
+                const prevData = navHistory[navHistory.length - 1];
+                currentPackIsFree = currentPackIsFree || prevData.isFree;
+                renderFolder(prevData); 
+            }
+        }
+        
+        let currentPackIsFree = false;
+        
+        function openFolder(data, isFree = false) { 
+            currentPackIsFree = isFree;
+            navHistory.push(data); 
+            renderFolder(data); 
+        }
+        
+        function renderFolder(data) {
+            toggleView('explorer');
+            document.getElementById('folderTitle').innerText = data.name;
+            const container = document.getElementById('contentList');
+            container.innerHTML = '';
+            const isFreePack = currentPackIsFree || data.isFree;
+            
+            // Banner informativo para usuarios públicos en packs VIP
+            if (!currentUserEmail && !isFreePack) {
+                const banner = document.createElement('div');
+                banner.className = 'mb-8 p-6 rounded-2xl text-center';
+                banner.style = 'background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(37,99,235,0.05)); border: 1px solid rgba(59,130,246,0.3);';
+                banner.innerHTML = `
+                    <div class="text-4xl mb-3">🔐</div>
+                    <h3 class="text-lg font-black uppercase italic tracking-tighter mb-2">Contenido Exclusivo VIP</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-4">Este pack es exclusivo para miembros VIP. Inicia sesión para descargar.</p>
+                    <button onclick="switchToLogin()"
+                        class="px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all hover:opacity-90"
+                        style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; box-shadow: 0 0 30px rgba(37,99,235,0.3);">
+                        🔒 Iniciar Sesión VIP
+                    </button>
+                `;
+                container.appendChild(banner);
+            }
+// ===============================
+// SUBCARPETAS
+// ===============================
+if (data.packages) {
+    data.packages.forEach(sub => {
+        const row = document.createElement('div');
+        row.className = 'item-row p-6 rounded-2xl flex justify-between items-center cursor-pointer mb-2';
+        row.onclick = () => openFolder(sub, isFreePack);
+        row.innerHTML = `
+            <div class="flex items-center gap-5">
+                <span class="text-xl">📁</span>
+                <span class="text-[11px] font-black uppercase">${sub.name}</span>
+            </div>
+            <span class="text-blue-500 font-black text-[9px] uppercase border border-blue-500/20 px-4 py-2 rounded-xl">
+                Entrar
+            </span>
+        `;
+        container.appendChild(row);
+    });
+}
+
+// ===============================
+// REMIXES (DESCARGA INDIVIDUAL)
+// ===============================
+if (data.remixes) {
+    data.remixes.forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'item-row p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6 mb-2';
+        
+        let actionButton;
+        const refId = f.referenceId;
+        const fileName = encodeURIComponent(f.name);
+        
+        if (currentUserEmail) {
+            actionButton = `
+                <button onclick="downloadWithToken('${refId}', '${fileName}', this)"
+                   class="w-full md:w-auto bg-blue-600 text-white px-10 py-4 rounded-xl text-[10px] font-black uppercase text-center hover:bg-blue-700 transition-all">
+                   Descargar
+                </button>
+            `;
+        } else if (isFreePack) {
+            actionButton = `
+                <button onclick="requestEmailForDownload('${refId}', '${fileName}', event)"
+                   class="w-full md:w-auto bg-green-600 text-white px-10 py-4 rounded-xl text-[10px] font-black uppercase text-center hover:bg-green-700 transition-all">
+                   🆓 Descargar Gratis
+                </button>
+            `;
+        } else {
+            actionButton = `
+                <button onclick="switchToLogin()"
+                   class="w-full md:w-auto bg-slate-700 text-slate-300 px-10 py-4 rounded-xl text-[10px] font-black uppercase text-center hover:bg-slate-600 transition-all border border-slate-600">
+                   🔒 VIP - Login para Descargar
+                </button>
+            `;
+        }
+        
+        row.innerHTML = `
+            <div class="w-full text-left">
+                <h5 class="text-[11px] font-black uppercase mb-1">${f.name}</h5>
+                <span class="text-[8px] text-slate-500 font-black uppercase">
+                    ${(f.metadata?.size / 1048576).toFixed(2)} MB
+                </span>
+            </div>
+            ${actionButton}
+        `;
+        container.appendChild(row);
+    });
+}
+}
+
+        // ============================================
+        // EDICIÓN DE PACKS (ADMIN)
+        // ============================================
+
+        function editPackDate(section, id, currentDate, e) {
+            e.stopPropagation();
+            
+            if (!currentUserIsAdmin) {
+                alert("No tienes permisos para esta acción.");
+                return;
+            }
+            
+            let currentDay = currentDate.split('T')[0];
+            const newDate = prompt("CAMBIAR FECHA (YYYY-MM-DD):", currentDay);
+            
+            if (!newDate) return;
+            
+            const validation = validateDate(newDate);
+            if (!validation.valid) {
+                alert(validation.message);
+                return;
+            }
+            
+            db.ref(section).child(id).update({ originalDate: `${newDate}T12:00:00Z` })
+                .catch(error => handleError(error, "Error al actualizar fecha."));
+        }
+
+        function editPackImage(section, id, currentUrl, e) {
+            e.stopPropagation();
+            
+            if (!currentUserIsAdmin) {
+                alert("No tienes permisos para esta acción.");
+                return;
+            }
+            
+            const newImg = prompt("NUEVO LINK DE IMAGEN:", currentUrl);
+            
+            if (!newImg) return;
+            
+            if (!validateImageUrl(newImg)) {
+                alert("⚠️ URL inválida o dominio no confiable. Solo se permiten imágenes de perubpm.blob.core.windows.net");
+                return;
+            }
+            
+            db.ref(section).child(id).update({ customImage: newImg })
+                .catch(error => handleError(error, "Error al actualizar imagen."));
+        }
+
+        function deletePack(section, id, e) {
+            e.stopPropagation();
+            
+            if (!currentUserIsAdmin) {
+                alert("No tienes permisos para esta acción.");
+                return;
+            }
+            
+            if (confirm("¿Estás seguro de borrar este pack permanentemente?")) {
+                db.ref(section).child(id).remove()
+                    .catch(error => handleError(error, "Error al eliminar pack."));
+            }
+        }
+        // ============================================
+        // SISTEMA PÚBLICO / VIP
+        // ============================================
+
+        let forcePublicMode = true;
+        let appInitialized = false;
+        let savedUserEmail = localStorage.getItem('userEmail') || '';
+        let savedUserAdmin = localStorage.getItem('userAdmin') === 'true';
+
+        function initApp() {
+            if (appInitialized) return;
+            appInitialized = true;
+            
+            // Verificar si hay sesión guardada
+            if (savedUserEmail && savedUserAdmin !== null) {
+                forcePublicMode = false;
+                currentUserEmail = savedUserEmail;
+                currentUserIsAdmin = savedUserAdmin;
+                
+                // Mostrar estado de usuario
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('appSection').classList.remove('hidden');
+                document.getElementById('publicLoginBtn').classList.add('hidden');
+                document.getElementById('logoutBtn').classList.remove('hidden');
+                document.getElementById('userStatus').innerText = savedUserAdmin ? "ADMINISTRADOR MAESTRO" : "ACCESO VIP CONECTADO";
+                
+                if (savedUserAdmin) {
+                    document.getElementById('adminUploadBtn').classList.remove('hidden');
+                    document.body.classList.add('is-admin');
+                    loadAuthorizedUsers();
+                    loadGuestEmails();
+                }
+                
+                console.log('Restaurando sesión:', savedUserEmail);
+            } else {
+                // Modo público
+                forcePublicMode = true;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('appSection').classList.remove('hidden');
+                document.getElementById('publicLoginBtn').classList.remove('hidden');
+                document.getElementById('logoutBtn').classList.add('hidden');
+                document.getElementById('adminUploadBtn').classList.add('hidden');
+                document.getElementById('userStatus').innerText = "👁️ MODO VISOR - ACCESO PÚBLICO";
+                document.body.classList.remove('is-admin');
+            }
+            
+            startGlobalListeners();
+            console.log('APP INICIADA');
+        }
+        
+        // Iniciar app cuando Firebase esté listo
+        window.addEventListener('load', () => {
+            setTimeout(initApp, 100);
+        });
+
+        function switchToLogin() {
+            forcePublicMode = false;
+            document.getElementById('vipModal').classList.remove('hidden');
+        }
+        
+        function closeVipModal() {
+            document.getElementById('vipModal').classList.add('hidden');
+        }
+        
+        function showLoginFromVipModal() {
+            closeVipModal();
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('appSection').classList.add('hidden');
+        }
+        
+        function backToCatalog() {
+            forcePublicMode = true;
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+        }
+
+        // ---- SISTEMA DE TOKENS SEGUROS ----
+        const API_KEY = "perubpm_secret_key_2024";
+
+        async function generateDownloadToken(referenceId, fileName) {
+            try {
+                console.log('Generando token para:', referenceId, fileName);
+                
+                const response = await fetch('/api/generate-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        referenceId,
+                        fileName,
+                        apiKey: API_KEY
+                    })
+                });
+                
+                console.log('Status:', response.status);
+                const text = await response.text();
+                console.log('Respuesta:', text.substring(0, 500));
+                
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    alert('Error del servidor: ' + text.substring(0, 200));
+                    return null;
+                }
+                
+                if (data.success) {
+                    return data.downloadUrl;
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo generar el token'));
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error);
+                alert('Error de conexión: ' + error.message);
+                return null;
+            }
+        }
+
+        // ---- Modal de email para descargas gratuitas ----
+
+        function requestEmailForDownload(refId, fileName, event) {
+            if (event) event.stopPropagation();
+            pendingDownloadUrl = refId;
+            pendingDownloadName = decodeURIComponent(fileName);
+            document.getElementById('guestEmailInput').value = '';
+            document.getElementById('emailModalError').classList.add('hidden');
+
+            document.getElementById('emailModalIcon').innerText = '📧';
+            document.getElementById('emailModalTitle').innerText = 'Descarga Gratuita';
+            document.getElementById('emailModalSub').innerText = 'Deja tu correo para descargar gratis';
+            document.getElementById('emailModalBtn').innerText = '✅ Confirmar y Descargar';
+
+            document.getElementById('emailModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('guestEmailInput').focus(), 100);
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').classList.add('hidden');
+            pendingDownloadUrl = '';
+            pendingDownloadName = '';
+        }
+
+        async function downloadWithToken(refId, fileName, btn) {
+            if (!refId) {
+                alert('Error: Reference ID no disponible');
+                return;
+            }
+            
+            const originalText = btn.innerText;
+            btn.innerText = 'Generando...';
+            btn.disabled = true;
+            
+            try {
+                const tokenUrl = await generateDownloadToken(refId, decodeURIComponent(fileName));
+                
+                if (tokenUrl) {
+                    window.open(tokenUrl, '_blank');
+                } else {
+                    alert('Error al generar enlace de descarga. Intenta nuevamente.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al procesar descarga.');
+            }
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+
+        async function confirmEmailDownload() {
+            const email = document.getElementById('guestEmailInput').value.trim().toLowerCase();
+            const errEl = document.getElementById('emailModalError');
+            const btn = document.getElementById('emailModalBtn');
+            
+            if (!email || !validateEmail(email)) {
+                errEl.classList.remove('hidden');
+                return;
+            }
+            errEl.classList.add('hidden');
+
+            btn.innerText = 'Procesando...';
+            btn.disabled = true;
+
+            // Guardar en Firebase
+            try {
+                await db.ref('guest_emails').push({
+                    email,
+                    file: pendingDownloadName,
+                    type: 'token',
+                    timestamp: Date.now(),
+                    date: new Date().toISOString()
+                });
+            } catch(e) {
+                console.warn('Error guardando email:', e);
+            }
+
+            // Generar token y descargar
+            const fileName = encodeURIComponent(pendingDownloadName);
+            const tokenUrl = await generateDownloadToken(pendingDownloadUrl, pendingDownloadName);
+            
+            if (tokenUrl) {
+                window.open(tokenUrl, '_blank');
+            } else {
+                alert('Error al generar enlace de descarga. Intenta nuevamente.');
+            }
+            
+            btn.innerText = '✅ Confirmar y Descargar';
+            btn.disabled = false;
+            closeEmailModal();
+        }
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeEmailModal();
+                closeVipModal();
+            }
+        });
+
+        // ---- Función admin: marcar/desmarcar gratis ----
+
+        async function toggleFree(section, id, isFree, e) {
+            e.stopPropagation();
+            if (!currentUserIsAdmin) { alert("No tienes permisos."); return; }
+            const newState = !isFree;
+            if (!confirm(newState
+                ? "¿Marcar este pack como GRATUITO? Se pedirá el link de Drive."
+                : "¿Quitar el acceso GRATUITO de este pack?")) return;
+            try {
+                if (newState) {
+                    // Pedir link de Drive obligatorio
+                    const driveLink = prompt("📁 Pega el link de la carpeta de Google Drive para este pack:\n(debe ser un link público de Drive)");
+                    if (!driveLink || !driveLink.trim()) {
+                        alert("⚠️ Debes ingresar un link de Drive para publicar este pack como gratuito.");
+                        return;
+                    }
+                    if (!driveLink.includes("drive.google.com")) {
+                        alert("⚠️ El link debe ser de Google Drive (drive.google.com).");
+                        return;
+                    }
+                    await db.ref(section).child(id).update({ isFree: true, driveLink: driveLink.trim() });
+                    const snap = await db.ref(section).child(id).once("value");
+                    const packData = snap.val();
+                    await db.ref("free_packs").child(id).set({
+                        ...packData,
+                        _sourceSection: section,
+                        _sourceId: id,
+                        driveLink: driveLink.trim()
+                    });
+                    alert("✅ Pack publicado como gratuito con link de Drive.");
+                } else {
+                    await db.ref(section).child(id).update({ isFree: false, driveLink: null });
+                    await db.ref("free_packs").child(id).remove();
+                    alert("🔒 Pack ya no es gratuito.");
+                }
+            } catch (err) {
+                handleError(err, "Error al actualizar. Verifica las reglas de Firebase.");
+            }
+        }
+
+        async function editDriveLink(section, id, currentLink, e) {
+            e.stopPropagation();
+            if (!currentUserIsAdmin) { alert("No tienes permisos."); return; }
+            const newLink = prompt("📁 Editar link de Google Drive:", currentLink || "");
+            if (newLink === null) return; // cancelado
+            if (newLink.trim() && !newLink.includes("drive.google.com")) {
+                alert("⚠️ El link debe ser de Google Drive (drive.google.com).");
+                return;
+            }
+            const finalLink = newLink.trim() || null;
+            try {
+                await db.ref(section).child(id).update({ driveLink: finalLink });
+                await db.ref("free_packs").child(id).update({ driveLink: finalLink });
+                alert(finalLink ? "✅ Link de Drive actualizado." : "⚠️ Link eliminado.");
+            } catch(err) {
+                handleError(err, "Error al actualizar link de Drive.");
+            }
+        }
+
+        // ---- Correos en el panel admin ----
+
+        function loadGuestEmails() {
+            if (!currentUserIsAdmin) return;
+            db.ref('guest_emails').on('value', snap => {
+                const container = document.getElementById('guestEmailsContainer');
+                const countEl = document.getElementById('emailsCount');
+                if (!container) return;
+                const data = snap.val();
+                if (!data) {
+                    container.innerHTML = '<p class="text-[10px] text-slate-500 italic p-2">Aún no hay correos registrados</p>';
+                    if (countEl) countEl.innerText = '0 correos';
+                    return;
+                }
+                const entries = Object.values(data).sort((a,b) => b.timestamp - a.timestamp);
+                container.innerHTML = '';
+                entries.forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-start bg-slate-900 p-3 rounded-lg border border-white/5';
+                    const date = new Date(entry.date).toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+                    div.innerHTML = `
+                        <div class="truncate">
+                            <p class="text-[10px] font-bold text-slate-300 truncate">${entry.email}</p>
+                            <p class="text-[8px] text-slate-500 uppercase mt-1 truncate">${entry.file || '—'}</p>
+                        </div>
+                        <span class="text-[8px] text-slate-500 font-bold ml-2 whitespace-nowrap">${date}</span>
+                    `;
+                    container.appendChild(div);
+                });
+                if (countEl) countEl.innerText = `${entries.length} correo${entries.length !== 1 ? 's' : ''} recolectado${entries.length !== 1 ? 's' : ''}`;
+            });
+        }
+
+        function exportEmailsCSV() {
+            db.ref('guest_emails').once('value', snap => {
+                const data = snap.val();
+                if (!data) { alert('No hay correos para exportar.'); return; }
+                const rows = [['Correo', 'Archivo', 'Fecha']];
+                Object.values(data).forEach(e => {
+                    rows.push([e.email, e.file || '', e.date || '']);
+                });
+                const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'correos_gratuitos.csv'; a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+    </script>
+</body>
+</html>
+
+
+
