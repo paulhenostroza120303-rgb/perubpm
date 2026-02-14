@@ -513,7 +513,7 @@ let currentPackName = "perubpm_pack";
         }
 
         function handleError(error, userMessage = "Ocurrió un error. Intenta nuevamente.") {
-            console.error('Error interno:', error);
+            
             alert(userMessage);
         }
 
@@ -551,7 +551,7 @@ let currentPackName = "perubpm_pack";
         auth.onAuthStateChanged(async user => {
             // Si está en modo público, no procesar usuarios
             if (forcePublicMode) {
-                console.log('Modo público - ignorando auth');
+                
                 return;
             }
             
@@ -603,7 +603,7 @@ let currentPackName = "perubpm_pack";
             savedUserEmail = user.email;
             savedUserAdmin = isAdmin;
             
-            console.log('🎉 Acceso concedido:', user.email, '- Admin:', isAdmin);
+            
             
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('appSection').classList.remove('hidden');
@@ -621,7 +621,7 @@ let currentPackName = "perubpm_pack";
                 loadDriveVisibility();
             }
             
-            console.log('🚀 Iniciando carga de datos...');
+            
             
             if (globalData.packs.length > 0) {
                 renderPacks(globalData[currentSection]);
@@ -679,9 +679,9 @@ let currentPackName = "perubpm_pack";
                 db.ref('settings/drive_privado_visible').set(driveVisibility),
                 db.ref('public/drive_privado_visible').set(driveVisibility)
             ]).then(() => {
-                console.log('Visibilidad de Drive Privado actualizada en ambas rutas');
+                
             }).catch(error => {
-                console.error('Error guardando visibilidad:', error);
+                
             });
             
             // Actualizar UI
@@ -690,7 +690,7 @@ let currentPackName = "perubpm_pack";
             // Aplicar visibilidad inmediatamente
             applyDriveVisibility();
             
-            console.log('Drive Privado visibilidad cambiada a:', driveVisibility ? 'VISIBLE' : 'OCULTO');
+            
         }
 
         function updateDriveVisibilityUI() {
@@ -709,31 +709,31 @@ let currentPackName = "perubpm_pack";
         }
 
         function loadDriveVisibility() {
-            console.log('Cargando visibilidad de Drive Privado - Usuario es admin:', currentUserIsAdmin);
+            
             
             // Para usuarios no admin, intentar leer configuración pública
             if (currentUserIsAdmin) {
                 // Admin puede leer settings directamente
                 db.ref('settings/drive_privado_visible').once('value').then(snapshot => {
                     driveVisibility = snapshot.val() === true;
-                    console.log('Admin - Visibilidad leída de settings:', driveVisibility);
+                    
                     updateDriveVisibilityUI();
                     applyDriveVisibility();
                 }).catch(error => {
-                    console.error('Error cargando visibilidad de drive:', error);
+                    
                     driveVisibility = false;
                     updateDriveVisibilityUI();
                     applyDriveVisibility();
                 });
             } else {
                 // Para usuarios normales, leer configuración pública
-                console.log('Usuario normal - Leyendo configuración pública...');
+                
                 db.ref('public/drive_privado_visible').once('value').then(snapshot => {
                     driveVisibility = snapshot.val() === true;
-                    console.log('Usuario normal - Visibilidad leída de public:', driveVisibility);
+                    
                     applyDriveVisibility();
                 }).catch(error => {
-                    console.log('Error leyendo configuración pública:', error.message);
+                    
                     driveVisibility = false;
                     applyDriveVisibility();
                 });
@@ -744,23 +744,23 @@ let currentPackName = "perubpm_pack";
             // Aplicar visibilidad al tab para todos los usuarios
             const driveTab = document.getElementById('tab-drive_privado');
             if (driveTab) {
-                console.log('Aplicando visibilidad - Tab encontrado:', driveTab);
-                console.log('Visibilidad actual:', driveVisibility);
-                console.log('Clases antes:', driveTab.className);
+                
+                
+                
                 
                 if (driveVisibility) {
                     driveTab.classList.remove('admin-only');
                     driveTab.classList.add('drive-visible');
                     driveTab.style.display = 'inline-flex';
-                    console.log('Mostrando Drive Privado - Clases después:', driveTab.className);
+                    
                 } else {
                     driveTab.classList.add('admin-only');
                     driveTab.classList.remove('drive-visible');
                     driveTab.style.display = '';
-                    console.log('Ocultando Drive Privado - Clases después:', driveTab.className);
+                    
                 }
             } else {
-                console.error('No se encontró el tab drive_privado');
+                
             }
         }
 
@@ -809,7 +809,7 @@ let currentPackName = "perubpm_pack";
 
         function startGlobalListeners() {
             const sections = ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos'];
-            console.log('🔵 Iniciando listeners globales...');
+            
             
             // Cargar visibilidad de Drive Privado para todos los usuarios
             loadDriveVisibility();
@@ -819,7 +819,7 @@ let currentPackName = "perubpm_pack";
                     const data = snap.val();
                     let parsed = [];
                     
-                    console.log(`📊 Datos recibidos de ${sec}:`, data ? Object.keys(data).length + ' items' : 'vacío');
+                    .length + ' items' : 'vacío');
                     
                     if(data) {
                         Object.keys(data).forEach(id => {
@@ -829,16 +829,16 @@ let currentPackName = "perubpm_pack";
                     }
                     
                     globalData[sec] = parsed;
-                    console.log(`✅ ${sec} cargado:`, parsed.length, 'packs');
+                    
                     
                     if (currentSection === sec && document.getElementById('searchInput').value.trim().length < 2) {
-                        console.log(`🎨 Renderizando ${sec}...`);
+                        
                         renderPacks(globalData[currentSection]);
                     } else if (document.getElementById('searchInput').value.trim().length >= 2) {
                         filterPacks();
                     }
                 }, error => {
-                    console.error(`❌ Error leyendo ${sec}:`, error);
+                    
                     handleError(error, `Error al cargar datos de ${sec}`);
                 });
             });
@@ -851,7 +851,7 @@ let currentPackName = "perubpm_pack";
             try {
                 // En desarrollo local, la API no está disponible
                 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    console.log('📁 Drive Privado: API no disponible en desarrollo local');
+                    
                     drivePrivadoFiles = [];
                     return;
                 }
@@ -871,13 +871,13 @@ let currentPackName = "perubpm_pack";
                 
                 if (data.success) {
                     drivePrivadoFiles = data.files;
-                    console.log('📁 Drive Privado cargado:', drivePrivadoFiles.length, 'archivos');
+                    
                 } else {
-                    console.error('Error cargando Drive:', data.error);
+                    
                     drivePrivadoFiles = [];
                 }
             } catch (error) {
-                console.error('Error en loadDrivePrivado:', error);
+                
                 // No mostrar error al usuario, solo log en consola
                 drivePrivadoFiles = [];
             }
@@ -996,7 +996,7 @@ let currentPackName = "perubpm_pack";
                     renderDriveFiles(data.files);
                 }
             } catch (error) {
-                console.error('Error:', error);
+                
             }
         }
         
@@ -1093,11 +1093,11 @@ let currentPackName = "perubpm_pack";
             const grid = document.getElementById('view-gallery');
             grid.innerHTML = '';
             
-            console.log('🎨 Renderizando packs:', packsArray ? packsArray.length : 0);
+            
             
             if(!packsArray || packsArray.length === 0) {
                 grid.innerHTML = '<div class="col-span-full text-center text-slate-500 text-xs mt-10">NO HAY PACKS DISPONIBLES</div>';
-                console.log('⚠️ No hay packs para mostrar');
+                
                 return;
             }
 
@@ -1375,7 +1375,7 @@ let currentPackName = "perubpm_pack";
         // ============================================
 
         async function fetchWithRetry(url, retries = 3) {
-    console.log(`🔄 Fetching: ${url}`);
+    
 
     for (let i = 0; i < retries; i++) {
         try {
@@ -1393,15 +1393,15 @@ let currentPackName = "perubpm_pack";
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            console.log("✅ Fetch directo exitoso");
+            
             return await response.json();
 
         } catch (err) {
-            console.warn(`❌ Intento directo ${i + 1} falló`);
+            
 
             // Último intento → usar proxy de Vercel
             if (i === retries - 1) {
-                console.log("🔁 Usando proxy de Vercel...");
+                
                 const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
                 const proxyRes = await fetch(proxyUrl);
                 if (!proxyRes.ok) throw new Error(`Proxy Vercel falló: HTTP ${proxyRes.status}`);
@@ -1409,7 +1409,7 @@ let currentPackName = "perubpm_pack";
             }
             
             if (i < retries - 1) {
-                console.log(`⏳ Reintentando en 2s... (${i + 1}/${retries})`);
+                `);
                 await new Promise(r => setTimeout(r, 2000));
             }
         }
@@ -1423,18 +1423,18 @@ let currentPackName = "perubpm_pack";
         // ============================================
 
         async function fetchPackageContents(packageId, depth = 0) {
-            console.log(`${'  '.repeat(depth)}📂 Explorando paquete: ${packageId} (nivel ${depth})`);
+            }📂 Explorando paquete: ${packageId} (nivel ${depth})`);
             
             try {
                 const detail = await fetchWithRetry(`https://api.perubpm.com/catalog/packages/folder/${packageId}`);
                 
                 if (detail.remixes && detail.remixes.length > 0) {
-                    console.log(`${'  '.repeat(depth)}🎵 Encontrados ${detail.remixes.length} remixes`);
+                    }🎵 Encontrados ${detail.remixes.length} remixes`);
                     return detail.remixes;
                 }
                 
                 if (detail.packages && detail.packages.length > 0) {
-                    console.log(`${'  '.repeat(depth)}📁 Encontradas ${detail.packages.length} subcarpetas, explorando...`);
+                    }📁 Encontradas ${detail.packages.length} subcarpetas, explorando...`);
                     
                     let allRemixes = [];
                     for (const subPackage of detail.packages) {
@@ -1443,41 +1443,41 @@ let currentPackName = "perubpm_pack";
                         allRemixes = allRemixes.concat(subRemixes);
                     }
                     
-                    console.log(`${'  '.repeat(depth)}✅ Total acumulado: ${allRemixes.length} remixes`);
+                    }✅ Total acumulado: ${allRemixes.length} remixes`);
                     return allRemixes;
                 }
                 
-                console.log(`${'  '.repeat(depth)}⚠️ Carpeta vacía`);
+                }⚠️ Carpeta vacía`);
                 return [];
                 
             } catch (error) {
-                console.error(`${'  '.repeat(depth)}❌ Error explorando paquete ${packageId}:`, error);
+                }❌ Error explorando paquete ${packageId}:`, error);
                 return [];
             }
         }
 
         async function processPackageRecursive(packData, depth = 0) {
-            console.log(`${'  '.repeat(depth)}🔍 Procesando: ${packData.name} (nivel ${depth})`);
+            }🔍 Procesando: ${packData.name} (nivel ${depth})`);
             
             if (packData.packages && packData.packages.length > 0) {
-                console.log(`${'  '.repeat(depth)}📁 Tiene ${packData.packages.length} subcarpetas`);
+                }📁 Tiene ${packData.packages.length} subcarpetas`);
                 
                 for (let sub of packData.packages) {
                     await new Promise(r => setTimeout(r, 1500));
-                    console.log(`${'  '.repeat(depth)}  📂 Explorando subcarpeta: ${sub.name}`);
+                    }  📂 Explorando subcarpeta: ${sub.name}`);
                     
                     const subRemixes = await fetchPackageContents(sub.id, depth + 1);
                     sub.remixes = subRemixes;
                     
-                    console.log(`${'  '.repeat(depth)}  ✅ ${sub.name}: ${subRemixes.length} archivos`);
+                    }  ✅ ${sub.name}: ${subRemixes.length} archivos`);
                 }
             }
             
             if ((!packData.packages || packData.packages.length === 0) && packData.id) {
-                console.log(`${'  '.repeat(depth)}🎵 Obteniendo remixes directos...`);
+                }🎵 Obteniendo remixes directos...`);
                 const remixes = await fetchPackageContents(packData.id, depth);
                 packData.remixes = remixes;
-                console.log(`${'  '.repeat(depth)}✅ ${remixes.length} remixes obtenidos`);
+                }✅ ${remixes.length} remixes obtenidos`);
             }
             
             return packData;
@@ -1532,34 +1532,34 @@ let currentPackName = "perubpm_pack";
                 btn.disabled = true;
                 statusArea.classList.remove('hidden');
                 
-                console.log(`\n${'='.repeat(60)}`);
-                console.log(`📦 SINCRONIZACIÓN RECURSIVA INICIADA`);
-                console.log(`📊 Total de packs a procesar: ${items.length}`);
-                console.log(`🎯 Destino: ${target}`);
-                console.log(`${'='.repeat(60)}\n`);
+                }`);
+                
+                
+                
+                }\n`);
 
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
                     statusLabel.innerText = `SINCRONIZANDO: ${item.slug || item.name || 'ITEM'} (${i+1}/${items.length})`;
                     
-                    console.log(`\n${'─'.repeat(60)}`);
-                    console.log(`🔄 [${i+1}/${items.length}] Procesando: ${item.slug || item.name}`);
-                    console.log(`${'─'.repeat(60)}\n`);
+                    }`);
+                    
+                    }\n`);
                     
                     try {
                         let packData;
                         
                         // Si el item ya tiene la información completa (packages, remixes), usarlo directamente
                         if (item.packages || item.remixes) {
-                            console.log(`📦 Usando datos del pack existentes (sin llamada API)`);
+                            `);
                             packData = item;
                         } else {
-                            console.log(`📡 Paso 1: Obteniendo información del pack...`);
+                            
                             packData = await fetchWithRetry(`https://api.perubpm.com/catalog/packages/slug/${item.slug}`);
-                            console.log(`✅ Pack obtenido: ${packData.name}`);
+                            
                         }
                         
-                        console.log(`\n🔍 Paso 2: Explorando estructura completa (recursivo)...`);
+                        ...`);
                         const processedPack = await processPackageRecursive(packData);
                         
                         let totalFiles = 0;
@@ -1569,16 +1569,16 @@ let currentPackName = "perubpm_pack";
                         };
                         countFiles(processedPack);
                         
-                        console.log(`\n📊 Resumen de exploración:`);
-                        console.log(`   📁 Paquetes encontrados: ${processedPack.packages ? processedPack.packages.length : 0}`);
-                        console.log(`   🎵 Total de archivos: ${totalFiles}`);
                         
-                        console.log(`\n🧹 Paso 3: Limpiando datos...`);
+                        
+                        
+                        
+                        
                         const sanitized = sanitizePackData(processedPack);
                         
                         let finalDate = (manualDate) ? `${manualDate}T12:00:00Z` : new Date().toISOString();
                         
-                        console.log(`\n💾 Paso 4: Guardando en Firebase...`);
+                        
                         await db.ref(target).push({
                             data: sanitized,
                             originalDate: finalDate,
@@ -1586,15 +1586,15 @@ let currentPackName = "perubpm_pack";
                             timestamp: Date.now()
                         });
                         
-                        console.log(`\n✅ ${item.slug} SINCRONIZADO EXITOSAMENTE`);
-                        console.log(`   📦 Pack completo guardado en: ${target}`);
-                        console.log(`   🎵 ${totalFiles} archivos incluidos\n`);
+                        
+                        
+                        
                         
                         await new Promise(r => setTimeout(r, 1000)); 
                         
                     } catch (err) {
-                        console.error(`\n❌ ERROR EN ${item.slug}:`, err);
-                        console.error(`📝 Detalles:`, err.message);
+                        
+                        
                         
                         const continuar = confirm(
                             `❌ Error procesando "${item.slug}":\n\n` +
@@ -1604,15 +1604,15 @@ let currentPackName = "perubpm_pack";
                         );
                         
                         if (!continuar) {
-                            console.log(`\n⚠️ Sincronización cancelada por el usuario`);
+                            
                             break;
                         }
                     }
                 }
                 
-                console.log(`\n${'='.repeat(60)}`);
-                console.log(`✅ SINCRONIZACIÓN RECURSIVA COMPLETADA`);
-                console.log(`${'='.repeat(60)}\n`);
+                }`);
+                
+                }\n`);
                 
                 alert("✅ Sincronización Completa\n\nRevisa la consola (F12) para ver detalles de la exploración");
                 statusArea.classList.add('hidden');
@@ -1621,7 +1621,7 @@ let currentPackName = "perubpm_pack";
                 changeSection(target);
                 
             } catch (e) { 
-                console.error('\n❌ ERROR GENERAL:', e);
+                
                 handleError(e, "JSON Inválido o error de formato."); 
             }
             
@@ -1842,7 +1842,7 @@ if (data.remixes) {
                     loadGuestEmails();
                 }
                 
-                console.log('Restaurando sesión:', savedUserEmail);
+                
             } else {
                 // Modo público
                 forcePublicMode = true;
@@ -1856,7 +1856,7 @@ if (data.remixes) {
             }
             
             startGlobalListeners();
-            console.log('APP INICIADA');
+            
         }
         
         // Iniciar app cuando Firebase esté listo
@@ -1890,7 +1890,7 @@ if (data.remixes) {
 
         async function generateDownloadToken(referenceId, fileName) {
             try {
-                console.log('Generando token para:', referenceId, fileName);
+                
                 
                 // Usar tu API local existente con los parámetros correctos
                 const token = "perubpm_download_" + Date.now(); // Token simple
@@ -1898,13 +1898,13 @@ if (data.remixes) {
                 // Construir URL con los parámetros que tu API espera
                 const downloadUrl = `/api/download?token=${token}&ref=${referenceId}&name=${encodeURIComponent(fileName)}`;
                 
-                console.log('URL de descarga generada:', downloadUrl);
+                
                 
                 // Retornar directamente la URL de tu API local
                 return downloadUrl;
                 
             } catch (error) {
-                console.error('Error de conexión:', error);
+                
                 alert('Error al generar enlace de descarga: ' + error.message);
                 return null;
             }
@@ -1948,7 +1948,7 @@ if (data.remixes) {
                 const tokenUrl = await generateDownloadToken(refId, decodeURIComponent(fileName));
                 
                 if (tokenUrl) {
-                    console.log('URL de descarga generada:', tokenUrl);
+                    
                     
                     // Intentar abrir en una nueva pestaña
                     const newWindow = window.open(tokenUrl, '_blank');
@@ -1956,14 +1956,14 @@ if (data.remixes) {
                     // Verificar si la ventana se abrió correctamente (no bloqueada por popup blocker)
                     if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                         // Si window.open falla, intentar con location.href
-                        console.log('window.open bloqueado, intentando con location.href');
+                        
                         window.location.href = tokenUrl;
                     }
                 } else {
                     alert('Error al generar enlace de descarga. Intenta nuevamente.');
                 }
             } catch (error) {
-                console.error('Error en descarga:', error);
+                
                 
                 // Si es un error específico de descarga, mostrar mensaje más útil
                 if (error.message && error.message.includes('error_descarga')) {
@@ -2001,7 +2001,7 @@ if (data.remixes) {
                     date: new Date().toISOString()
                 });
             } catch(e) {
-                console.warn('Error guardando email:', e);
+                
             }
 
             // Generar token y descargar

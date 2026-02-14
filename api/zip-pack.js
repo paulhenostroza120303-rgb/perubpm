@@ -5,6 +5,8 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+    const isDev = process.env.NODE_ENV === 'development';
+    
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }
@@ -28,7 +30,7 @@ export default async function handler(req, res) {
                 const r = await fetch(url);
 
                 if (!r.ok) {
-                    console.warn("Skip file:", f.name);
+                    if (isDev) 
                     continue;
                 }
 
@@ -37,7 +39,7 @@ export default async function handler(req, res) {
                 added++;
 
             } catch (fileErr) {
-                console.warn("Error file:", f.name, fileErr);
+                if (isDev) 
             }
         }
 
@@ -60,7 +62,7 @@ export default async function handler(req, res) {
         return res.status(200).send(zipBuffer);
 
     } catch (err) {
-        console.error("ZIP PACK ERROR:", err);
+        if (isDev) 
         return res.status(500).json({
             error: "ZIP generation failed",
             detail: err.message

@@ -1,5 +1,8 @@
 export default async function handler(req, res) {
   const target = req.query.url;
+  const isDev = process.env.NODE_ENV === 'development';
+
+  if (isDev) 
 
   if (!target) {
     return res.status(400).json({ error: "Missing url param" });
@@ -30,6 +33,7 @@ export default async function handler(req, res) {
     res.status(response.status).send(data);
 
   } catch (err) {
+    if (isDev) 
     res.status(500).json({
       error: "Proxy error",
       detail: err.message

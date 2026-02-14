@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     data.pipe(res);
 
   } catch (error) {
-    console.error('Error:', error.message);
+    
     return res.redirect('/?error=error_descarga');
   }
 }

@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, files, count: files.length });
 
   } catch (error) {
-    console.error('Error completo:', error);
+    
     return res.status(500).json({ error: error.message, stack: error.stack });
   }
 }

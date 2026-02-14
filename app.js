@@ -259,7 +259,7 @@ function openPackById(id) {
         
         // 2. Aquí va la lógica para mostrar el contenido. 
         // Por ejemplo, si usas un modal o una sección de detalles:
-        console.log("Abriendo pack:", pack.name);
+        
         
         // Si tienes una función para mostrar el modal del pack, llámala aquí:
         // showPackModal(pack); 
@@ -271,6 +271,6 @@ function openPackById(id) {
             alert("Este pack no tiene un link configurado.");
         }
     } else {
-        console.error("No se encontró el pack con ID:", id);
+        
     }
 }

@@ -1,4 +1,5 @@
 export default function handler(req, res) {
+  const isDev = process.env.NODE_ENV === 'development';
   res.setHeader('Content-Type', 'application/json');
   
   if (req.method !== 'POST') {
@@ -30,7 +31,7 @@ export default function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Error:', error);
+    if (isDev) 
     return res.status(500).json({ error: 'Error: ' + error.message });
   }
 }
