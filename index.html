@@ -1505,8 +1505,20 @@ let currentPackName = "perubpm_pack";
             const statusArea = document.getElementById('statusArea');
 
             try {
-                let items = JSON.parse(jsonText).content || JSON.parse(jsonText);
-                if(!Array.isArray(items)) items = [items];
+                let parsed = JSON.parse(jsonText);
+                let items;
+                
+                // Verificar si es un pack individual o un array de packs
+                if (Array.isArray(parsed)) {
+                    items = parsed;
+                } else if (parsed.content && Array.isArray(parsed.content)) {
+                    items = parsed.content;
+                } else if (parsed.id && parsed.name) {
+                    // Es un pack individual, convertirlo a array
+                    items = [parsed];
+                } else {
+                    throw new Error("Formato de JSON no reconocido. Se espera un pack individual o un array de packs.");
+                }
                 
                 btn.disabled = true;
                 statusArea.classList.remove('hidden');
@@ -1519,16 +1531,24 @@ let currentPackName = "perubpm_pack";
 
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
-                    statusLabel.innerText = `SINCRONIZANDO: ${item.slug || 'ITEM'} (${i+1}/${items.length})`;
+                    statusLabel.innerText = `SINCRONIZANDO: ${item.slug || item.name || 'ITEM'} (${i+1}/${items.length})`;
                     
                     console.log(`\n${'─'.repeat(60)}`);
-                    console.log(`🔄 [${i+1}/${items.length}] Procesando: ${item.slug}`);
+                    console.log(`🔄 [${i+1}/${items.length}] Procesando: ${item.slug || item.name}`);
                     console.log(`${'─'.repeat(60)}\n`);
                     
                     try {
-                        console.log(`📡 Paso 1: Obteniendo información del pack...`);
-                        const packData = await fetchWithRetry(`https://api.perubpm.com/catalog/packages/slug/${item.slug}`);
-                        console.log(`✅ Pack obtenido: ${packData.name}`);
+                        let packData;
+                        
+                        // Si el item ya tiene la información completa (packages, remixes), usarlo directamente
+                        if (item.packages || item.remixes) {
+                            console.log(`📦 Usando datos del pack existentes (sin llamada API)`);
+                            packData = item;
+                        } else {
+                            console.log(`📡 Paso 1: Obteniendo información del pack...`);
+                            packData = await fetchWithRetry(`https://api.perubpm.com/catalog/packages/slug/${item.slug}`);
+                            console.log(`✅ Pack obtenido: ${packData.name}`);
+                        }
                         
                         console.log(`\n🔍 Paso 2: Explorando estructura completa (recursivo)...`);
                         const processedPack = await processPackageRecursive(packData);
