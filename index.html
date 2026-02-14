@@ -701,11 +701,14 @@ let currentPackName = "perubpm_pack";
         }
 
         function loadDriveVisibility() {
+            console.log('Cargando visibilidad de Drive Privado - Usuario es admin:', currentUserIsAdmin);
+            
             // Para usuarios no admin, intentar leer configuración pública
             if (currentUserIsAdmin) {
                 // Admin puede leer settings directamente
                 db.ref('settings/drive_privado_visible').once('value').then(snapshot => {
                     driveVisibility = snapshot.val() === true;
+                    console.log('Admin - Visibilidad leída de settings:', driveVisibility);
                     updateDriveVisibilityUI();
                     applyDriveVisibility();
                 }).catch(error => {
@@ -716,10 +719,12 @@ let currentPackName = "perubpm_pack";
                 });
             } else {
                 // Para usuarios normales, intentar leer configuración pública o usar valor por defecto
+                console.log('Usuario normal - Intentando leer configuración pública...');
                 db.ref('public/drive_privado_visible').once('value').then(snapshot => {
                     driveVisibility = snapshot.val() === true;
+                    console.log('Usuario normal - Visibilidad leída de public:', driveVisibility);
+                    console.log('Valor raw de snapshot:', snapshot.val());
                     applyDriveVisibility();
-                    console.log('Drive Privado visibilidad (pública):', driveVisibility ? 'VISIBLE' : 'OCULTO');
                 }).catch(error => {
                     // Si no hay configuración pública, mantener oculto
                     console.log('Sin configuración pública - Drive Privado permanece oculto');
@@ -733,13 +738,23 @@ let currentPackName = "perubpm_pack";
             // Aplicar visibilidad al tab para todos los usuarios
             const driveTab = document.getElementById('tab-drive_privado');
             if (driveTab) {
+                console.log('Aplicando visibilidad - Tab encontrado:', driveTab);
+                console.log('Visibilidad actual:', driveVisibility);
+                console.log('Clases antes:', driveTab.className);
+                
                 if (driveVisibility) {
                     driveTab.classList.remove('admin-only');
                     driveTab.classList.add('drive-visible');
+                    driveTab.style.display = 'inline-flex';
+                    console.log('Mostrando Drive Privado - Clases después:', driveTab.className);
                 } else {
                     driveTab.classList.add('admin-only');
                     driveTab.classList.remove('drive-visible');
+                    driveTab.style.display = '';
+                    console.log('Ocultando Drive Privado - Clases después:', driveTab.className);
                 }
+            } else {
+                console.error('No se encontró el tab drive_privado');
             }
         }
 
