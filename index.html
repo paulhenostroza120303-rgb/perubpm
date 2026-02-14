@@ -1892,17 +1892,35 @@ if (data.remixes) {
             try {
                 console.log('Generando token para:', referenceId, fileName);
                 
-                // Generar URL de descarga directa de la API de PeruBPM
-                const downloadUrl = `https://api.perubpm.com/catalog/drive/download/${referenceId}?fileName=${encodeURIComponent(fileName)}`;
+                // Usar API local como proxy para ocultar la URL directa de PeruBPM
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        referenceId,
+                        fileName
+                    })
+                });
                 
-                console.log('URL de descarga generada:', downloadUrl);
+                console.log('Status:', response.status);
                 
-                // Retornar directamente la URL sin necesidad de token adicional
-                return downloadUrl;
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Respuesta del proxy:', data);
+                
+                if (data.success && data.downloadUrl) {
+                    // Retornar URL de nuestro proxy local
+                    return data.downloadUrl;
+                } else {
+                    throw new Error(data.error || 'No se pudo generar el enlace de descarga');
+                }
                 
             } catch (error) {
-                console.error('Error de conexión completo:', error);
-                alert('Error de conexión: ' + error.message);
+                console.error('Error de conexión:', error);
+                alert('Error al generar enlace de descarga: ' + error.message);
                 return null;
             }
         }
