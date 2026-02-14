@@ -257,6 +257,24 @@ Mobile UI
                 </div>
             </div>
 
+            <!-- VISIBILIDAD DE DRIVE PRIVADO -->
+            <div class="glass p-10 rounded-[2.5rem] mb-8 border border-purple-500/20">
+                <h3 class="text-xl font-black italic uppercase mb-6 text-purple-400">Visibilidad de Drive Privado</h3>
+                
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-bold text-slate-300 uppercase">Mostrar Drive Privado a usuarios:</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="driveVisibilityToggle" class="sr-only peer" onchange="toggleDriveVisibility()">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+                    <span id="driveStatus" class="text-[9px] font-black uppercase px-3 py-1 rounded-lg bg-red-500/20 text-red-400">OCULTO</span>
+                </div>
+                
+                <p class="text-[9px] text-slate-400 italic">⚠️ Solo los administradores pueden ver y cambiar esta configuración</p>
+            </div>
+
             <!-- CORREOS RECOLECTADOS -->
             <div class="glass p-10 rounded-[2.5rem] mb-8 border border-green-500/20">
                 <div class="flex justify-between items-center mb-6">
@@ -532,6 +550,7 @@ let currentPackName = "perubpm_pack";
                 document.body.classList.add('is-admin');
                 loadAuthorizedUsers();
                 loadGuestEmails();
+                loadDriveVisibility();
             }
             
             console.log('🚀 Iniciando carga de datos...');
@@ -569,6 +588,77 @@ let currentPackName = "perubpm_pack";
                 } else {
                     usersContainer.innerHTML = '<p class="text-[10px] text-slate-500 italic p-2">No hay usuarios registrados</p>';
                 }
+            });
+        }
+
+        // ============================================
+        // VISIBILIDAD DE DRIVE PRIVADO (ADMIN)
+        // ============================================
+
+        let driveVisibility = false; // Por defecto oculto
+
+        function toggleDriveVisibility() {
+            if (!currentUserIsAdmin) {
+                alert('No tienes permisos para cambiar esta configuración.');
+                document.getElementById('driveVisibilityToggle').checked = driveVisibility;
+                return;
+            }
+            
+            driveVisibility = document.getElementById('driveVisibilityToggle').checked;
+            
+            // Guardar en Firebase
+            db.ref('settings/drive_privado_visible').set(driveVisibility);
+            
+            // Actualizar UI
+            updateDriveVisibilityUI();
+            
+            // Mostrar/ocultar tab dinámicamente
+            const driveTab = document.getElementById('tab-drive_privado');
+            if (driveVisibility) {
+                driveTab.classList.remove('admin-only');
+                driveTab.classList.add('nav-tab');
+            } else {
+                driveTab.classList.add('admin-only');
+                driveTab.classList.remove('nav-tab');
+            }
+        }
+
+        function updateDriveVisibilityUI() {
+            const statusSpan = document.getElementById('driveStatus');
+            const checkbox = document.getElementById('driveVisibilityToggle');
+            
+            if (driveVisibility) {
+                statusSpan.textContent = 'VISIBLE';
+                statusSpan.className = 'text-[9px] font-black uppercase px-3 py-1 rounded-lg bg-green-500/20 text-green-400';
+                checkbox.checked = true;
+            } else {
+                statusSpan.textContent = 'OCULTO';
+                statusSpan.className = 'text-[9px] font-black uppercase px-3 py-1 rounded-lg bg-red-500/20 text-red-400';
+                checkbox.checked = false;
+            }
+        }
+
+        function loadDriveVisibility() {
+            if (!currentUserIsAdmin) return;
+            
+            db.ref('settings/drive_privado_visible').once('value').then(snapshot => {
+                driveVisibility = snapshot.val() === true;
+                updateDriveVisibilityUI();
+                
+                // Aplicar visibilidad inicial al tab
+                const driveTab = document.getElementById('tab-drive_privado');
+                if (driveVisibility) {
+                    driveTab.classList.remove('admin-only');
+                    driveTab.classList.add('nav-tab');
+                } else {
+                    driveTab.classList.add('admin-only');
+                    driveTab.classList.remove('nav-tab');
+                }
+            }).catch(error => {
+                console.error('Error cargando visibilidad de drive:', error);
+                // Por defecto oculto si hay error
+                driveVisibility = false;
+                updateDriveVisibilityUI();
             });
         }
 
