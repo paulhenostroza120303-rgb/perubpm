@@ -1296,28 +1296,31 @@ let currentPackName = "perubpm_pack";
             ];
 
             const filteredPacks = allCombined.filter(item => 
-                item.data.name.toLowerCase().includes(query)
+                item && item.data && item.data.name && item.data.name.toLowerCase().includes(query)
             );
             
             let foundMusic = [];
             
             if (query.length >= 3) {
                 allCombined.forEach(packItem => {
+                    // Validar que packItem y packItem.data existan
+                    if (!packItem || !packItem.data) return;
+                    
                     const p = packItem.data;
                     const originLabel = sectionLabels[packItem.section];
                     const isFreePack = packItem.isFree;
 
                     if (p.remixes) {
                         p.remixes.forEach(r => {
-                            if (r.name.toLowerCase().includes(query)) 
+                            if (r && r.name && r.name.toLowerCase().includes(query)) 
                                 foundMusic.push({ ...r, packName: p.name, section: originLabel, isFree: isFreePack });
                         });
                     }
                     if (p.packages) {
                         p.packages.forEach(sub => {
-                            if (sub.remixes) {
+                            if (sub && sub.remixes) {
                                 sub.remixes.forEach(r => {
-                                    if (r.name.toLowerCase().includes(query)) 
+                                    if (r && r.name && r.name.toLowerCase().includes(query)) 
                                         foundMusic.push({ ...r, packName: `${p.name} > ${sub.name}`, section: originLabel, isFree: isFreePack });
                                 });
                             }
