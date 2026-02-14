@@ -721,12 +721,24 @@ let currentPackName = "perubpm_pack";
                 
                 console.log('Drive Privado visibilidad cargada:', driveVisibility ? 'VISIBLE' : 'OCULTO');
             }).catch(error => {
-                console.error('Error cargando visibilidad de drive:', error);
-                // Por defecto oculto si hay error
+                // Silenciar error de permisos para usuarios normales
+                if (error.message && error.message.includes('permission_denied')) {
+                    console.log('Usuario sin permisos de admin - Drive Privado permanece oculto');
+                    driveVisibility = false;
+                } else {
+                    console.error('Error cargando visibilidad de drive:', error);
+                }
+                
+                // Por defecto oculto si hay error o no hay permisos
                 driveVisibility = false;
                 if (currentUserIsAdmin) {
                     updateDriveVisibilityUI();
                 }
+                
+                // Asegurar que el tab esté oculto para usuarios sin permisos
+                const driveTab = document.getElementById('tab-drive_privado');
+                driveTab.classList.add('admin-only');
+                driveTab.classList.remove('drive-visible');
             });
         }
 
