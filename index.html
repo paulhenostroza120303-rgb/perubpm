@@ -1904,24 +1904,29 @@ if (data.remixes) {
                 
                 console.log('Status:', response.status);
                 const text = await response.text();
-                console.log('Respuesta:', text.substring(0, 500));
+                console.log('Respuesta completa:', text);
                 
                 let data;
                 try {
                     data = JSON.parse(text);
                 } catch (e) {
+                    console.error('Error parseando JSON:', e);
                     alert('Error del servidor: ' + text.substring(0, 200));
                     return null;
                 }
                 
+                console.log('Datos parseados:', data);
+                
                 if (data.success) {
+                    console.log('URL de descarga:', data.downloadUrl);
                     return data.downloadUrl;
                 } else {
+                    console.error('Error en respuesta:', data);
                     alert('Error: ' + (data.error || 'No se pudo generar el token'));
                     return null;
                 }
             } catch (error) {
-                console.error('Error de conexión:', error);
+                console.error('Error de conexión completo:', error);
                 alert('Error de conexión: ' + error.message);
                 return null;
             }
@@ -1965,13 +1970,29 @@ if (data.remixes) {
                 const tokenUrl = await generateDownloadToken(refId, decodeURIComponent(fileName));
                 
                 if (tokenUrl) {
-                    window.open(tokenUrl, '_blank');
+                    console.log('URL de descarga generada:', tokenUrl);
+                    
+                    // Intentar abrir en una nueva pestaña
+                    const newWindow = window.open(tokenUrl, '_blank');
+                    
+                    // Verificar si la ventana se abrió correctamente (no bloqueada por popup blocker)
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        // Si window.open falla, intentar con location.href
+                        console.log('window.open bloqueado, intentando con location.href');
+                        window.location.href = tokenUrl;
+                    }
                 } else {
                     alert('Error al generar enlace de descarga. Intenta nuevamente.');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error al procesar descarga.');
+                console.error('Error en descarga:', error);
+                
+                // Si es un error específico de descarga, mostrar mensaje más útil
+                if (error.message && error.message.includes('error_descarga')) {
+                    alert('Error al descargar. El enlace puede haber expirado. Por favor intenta generar un nuevo enlace de descarga.');
+                } else {
+                    alert('Error al procesar descarga: ' + error.message);
+                }
             }
             
             btn.innerText = originalText;
