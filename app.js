@@ -190,9 +190,15 @@ function renderPacks(packsArray) {
     const grid = document.getElementById('view-gallery');
     grid.innerHTML = '';
     let lastMonthLabel = "";
+    const isAdmin = auth.currentUser && auth.currentUser.email === MASTER_ADMIN;
 
     packsArray.forEach(item => {
         const pack = item.data;
+        
+        // Filtrar por visibilidad: si no es admin, solo mostrar packs visibles
+        if (!isAdmin && pack.visible === false) {
+            return; // Skip este pack para usuarios no admin
+        }
         const packNameLower = (pack.name || "").toLowerCase();
         const itemDate = new Date(item.originalDate);
         const monthLabel = itemDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase();

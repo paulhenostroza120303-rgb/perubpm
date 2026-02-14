@@ -71,6 +71,65 @@ Mobile UI
         
         .admin-only { display: none; }
         .is-admin .admin-only { display: block; }
+        
+        /* ---- SISTEMA DE VISIBILIDAD DRIVE PRIVADO ---- */
+        .nav-tab.admin-only { 
+            display: none; 
+        }
+        .is-admin .nav-tab.admin-only { 
+            display: inline-flex; 
+        }
+        
+        /* Cuando Drive Privado es visible para todos */
+        .nav-tab.drive-visible { 
+            display: inline-flex !important; 
+        }
+        
+        /* Toggle switch mejorado */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #374151;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #9333ea;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
 
         .loader-line { height: 3px; width: 100%; position: relative; overflow: hidden; background: rgba(255,255,255,0.05); border-radius: 10px; }
         .loader-line::after { content: ''; position: absolute; left: -50%; height: 100%; width: 50%; background: var(--accent); animation: loading 1.5s infinite; }
@@ -265,9 +324,9 @@ Mobile UI
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center gap-3">
                         <span class="text-[10px] font-bold text-slate-300 uppercase">Mostrar Drive Privado a usuarios:</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="driveVisibilityToggle" class="sr-only peer" onchange="toggleDriveVisibility()">
-                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="driveVisibilityToggle" onchange="toggleDriveVisibility()">
+                            <span class="toggle-slider"></span>
                         </label>
                     </div>
                     <span id="driveStatus" class="text-[9px] font-black uppercase px-3 py-1 rounded-lg bg-red-500/20 text-red-400">OCULTO</span>
@@ -613,15 +672,17 @@ let currentPackName = "perubpm_pack";
             // Actualizar UI
             updateDriveVisibilityUI();
             
-            // Mostrar/ocultar tab dinámicamente
+            // Mostrar/ocultar tab dinámicamente para todos los usuarios
             const driveTab = document.getElementById('tab-drive_privado');
             if (driveVisibility) {
                 driveTab.classList.remove('admin-only');
-                driveTab.classList.add('nav-tab');
+                driveTab.classList.add('drive-visible');
             } else {
                 driveTab.classList.add('admin-only');
-                driveTab.classList.remove('nav-tab');
+                driveTab.classList.remove('drive-visible');
             }
+            
+            console.log('Drive Privado visibilidad cambiada a:', driveVisibility ? 'VISIBLE' : 'OCULTO');
         }
 
         function updateDriveVisibilityUI() {
@@ -640,26 +701,32 @@ let currentPackName = "perubpm_pack";
         }
 
         function loadDriveVisibility() {
-            if (!currentUserIsAdmin) return;
-            
             db.ref('settings/drive_privado_visible').once('value').then(snapshot => {
                 driveVisibility = snapshot.val() === true;
-                updateDriveVisibilityUI();
                 
-                // Aplicar visibilidad inicial al tab
+                // Actualizar UI del admin si es admin
+                if (currentUserIsAdmin) {
+                    updateDriveVisibilityUI();
+                }
+                
+                // Aplicar visibilidad al tab para todos los usuarios
                 const driveTab = document.getElementById('tab-drive_privado');
                 if (driveVisibility) {
                     driveTab.classList.remove('admin-only');
-                    driveTab.classList.add('nav-tab');
+                    driveTab.classList.add('drive-visible');
                 } else {
                     driveTab.classList.add('admin-only');
-                    driveTab.classList.remove('nav-tab');
+                    driveTab.classList.remove('drive-visible');
                 }
+                
+                console.log('Drive Privado visibilidad cargada:', driveVisibility ? 'VISIBLE' : 'OCULTO');
             }).catch(error => {
                 console.error('Error cargando visibilidad de drive:', error);
                 // Por defecto oculto si hay error
                 driveVisibility = false;
-                updateDriveVisibilityUI();
+                if (currentUserIsAdmin) {
+                    updateDriveVisibilityUI();
+                }
             });
         }
 
@@ -709,6 +776,9 @@ let currentPackName = "perubpm_pack";
         function startGlobalListeners() {
             const sections = ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos'];
             console.log('🔵 Iniciando listeners globales...');
+            
+            // Cargar visibilidad de Drive Privado para todos los usuarios
+            loadDriveVisibility();
             
             sections.forEach(sec => {
                 db.ref(sec).on('value', snap => {
