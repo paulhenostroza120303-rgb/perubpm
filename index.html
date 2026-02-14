@@ -1892,76 +1892,16 @@ if (data.remixes) {
             try {
                 console.log('Generando token para:', referenceId, fileName);
                 
-                // Intentar diferentes métodos para el proxy local
-                let downloadUrl = null;
-                let lastError = null;
+                // Usar tu API local existente con los parámetros correctos
+                const token = "perubpm_download_" + Date.now(); // Token simple
                 
-                // Método 1: POST a /api/download
-                try {
-                    console.log('Intentando POST /api/download...');
-                    const response = await fetch('/api/download', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            referenceId,
-                            fileName
-                        })
-                    });
-                    
-                    console.log('Status POST:', response.status);
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('Respuesta POST:', data);
-                        
-                        if (data.success && data.downloadUrl) {
-                            downloadUrl = data.downloadUrl;
-                        }
-                    } else {
-                        throw new Error(`POST failed: ${response.status}`);
-                    }
-                } catch (error) {
-                    console.log('POST /api/download falló:', error.message);
-                    lastError = error;
-                }
+                // Construir URL con los parámetros que tu API espera
+                const downloadUrl = `/api/download?token=${token}&ref=${referenceId}&name=${encodeURIComponent(fileName)}`;
                 
-                // Método 2: GET con query params
-                if (!downloadUrl) {
-                    try {
-                        console.log('Intentando GET /api/download...');
-                        const response = await fetch(`/api/download?referenceId=${referenceId}&fileName=${encodeURIComponent(fileName)}`);
-                        
-                        console.log('Status GET:', response.status);
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            console.log('Respuesta GET:', data);
-                            
-                            if (data.success && data.downloadUrl) {
-                                downloadUrl = data.downloadUrl;
-                            }
-                        } else {
-                            throw new Error(`GET failed: ${response.status}`);
-                        }
-                    } catch (error) {
-                        console.log('GET /api/download falló:', error.message);
-                        lastError = error;
-                    }
-                }
+                console.log('URL de descarga generada:', downloadUrl);
                 
-                // Método 3: Fallback a URL directa (temporal)
-                if (!downloadUrl) {
-                    console.log('Usando fallback directo a API PeruBPM...');
-                    downloadUrl = `https://api.perubpm.com/catalog/drive/download/${referenceId}?fileName=${encodeURIComponent(fileName)}`;
-                    console.warn('⚠️ Usando URL directa - considera implementar /api/download');
-                }
-                
-                if (downloadUrl) {
-                    console.log('URL de descarga final:', downloadUrl);
-                    return downloadUrl;
-                } else {
-                    throw new Error(lastError?.message || 'No se pudo generar enlace de descarga');
-                }
+                // Retornar directamente la URL de tu API local
+                return downloadUrl;
                 
             } catch (error) {
                 console.error('Error de conexión:', error);
