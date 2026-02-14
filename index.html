@@ -1374,53 +1374,49 @@ let currentPackName = "perubpm_pack";
         // FETCH DIRECTO SIN PROXIES (MÁS CONFIABLE)
         // ============================================
 
-        const API_BASE_URL = '/api'; // Usar proxy local en lugar de API directa
-
         async function fetchWithRetry(url, retries = 3) {
-            // Reemplazar URL directa de API por proxy
-            const proxyUrl = url.replace('https://api.perubpm.com', API_BASE_URL);
-            console.log(`🔄 Fetching: ${proxyUrl}`);
+    console.log(`🔄 Fetching: ${url}`);
 
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    for (let i = 0; i < retries; i++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-                    const response = await fetch(proxyUrl, {
-                        signal: controller.signal,
-                        headers: { "Accept": "application/json" }
-                    });
+            const response = await fetch(url, {
+                signal: controller.signal,
+                headers: { "Accept": "application/json" }
+            });
 
-                    clearTimeout(timeoutId);
+            clearTimeout(timeoutId);
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-
-                    console.log("✅ Fetch via proxy exitoso");
-                    return await response.json();
-
-                } catch (err) {
-                    console.warn(`❌ Intento ${i + 1} fallido:`, err.message);
-
-                    // Último intento → mantener usando proxy local
-                    if (i === retries - 1) {
-                        console.log("🔁 Último intento con proxy local...");
-                        const lastAttemptUrl = url.replace('https://api.perubpm.com', API_BASE_URL);
-                        const proxyRes = await fetch(lastAttemptUrl);
-                        if (!proxyRes.ok) throw new Error(`Proxy falló: HTTP ${proxyRes.status}`);
-                        return await proxyRes.json();
-                    }
-                    
-                    if (i < retries - 1) {
-                        console.log(`⏳ Reintentando en 2s... (${i + 1}/${retries})`);
-                        await new Promise(r => setTimeout(r, 2000));
-                    }
-                }
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            throw new Error(`Todos los intentos fallaron para: ${url}`);
+            console.log("✅ Fetch directo exitoso");
+            return await response.json();
+
+        } catch (err) {
+            console.warn(`❌ Intento directo ${i + 1} falló`);
+
+            // Último intento → usar proxy de Vercel
+            if (i === retries - 1) {
+                console.log("🔁 Usando proxy de Vercel...");
+                const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+                const proxyRes = await fetch(proxyUrl);
+                if (!proxyRes.ok) throw new Error(`Proxy Vercel falló: HTTP ${proxyRes.status}`);
+                return await proxyRes.json();
+            }
+            
+            if (i < retries - 1) {
+                console.log(`⏳ Reintentando en 2s... (${i + 1}/${retries})`);
+                await new Promise(r => setTimeout(r, 2000));
+            }
         }
+    }
+
+    throw new Error(`Todos los intentos fallaron para: ${url}`);
+}
 
         // ============================================
         // EXPLORACIÓN RECURSIVA DE PAQUETES
