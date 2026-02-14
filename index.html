@@ -666,21 +666,21 @@ let currentPackName = "perubpm_pack";
             
             driveVisibility = document.getElementById('driveVisibilityToggle').checked;
             
-            // Guardar en Firebase
-            db.ref('settings/drive_privado_visible').set(driveVisibility);
+            // Guardar en ambas rutas: settings (admin) y public (usuarios)
+            Promise.all([
+                db.ref('settings/drive_privado_visible').set(driveVisibility),
+                db.ref('public/drive_privado_visible').set(driveVisibility)
+            ]).then(() => {
+                console.log('Visibilidad de Drive Privado actualizada en ambas rutas');
+            }).catch(error => {
+                console.error('Error guardando visibilidad:', error);
+            });
             
             // Actualizar UI
             updateDriveVisibilityUI();
             
-            // Mostrar/ocultar tab dinámicamente para todos los usuarios
-            const driveTab = document.getElementById('tab-drive_privado');
-            if (driveVisibility) {
-                driveTab.classList.remove('admin-only');
-                driveTab.classList.add('drive-visible');
-            } else {
-                driveTab.classList.add('admin-only');
-                driveTab.classList.remove('drive-visible');
-            }
+            // Aplicar visibilidad inmediatamente
+            applyDriveVisibility();
             
             console.log('Drive Privado visibilidad cambiada a:', driveVisibility ? 'VISIBLE' : 'OCULTO');
         }
@@ -701,16 +701,38 @@ let currentPackName = "perubpm_pack";
         }
 
         function loadDriveVisibility() {
-            db.ref('settings/drive_privado_visible').once('value').then(snapshot => {
-                driveVisibility = snapshot.val() === true;
-                
-                // Actualizar UI del admin si es admin
-                if (currentUserIsAdmin) {
+            // Para usuarios no admin, intentar leer configuración pública
+            if (currentUserIsAdmin) {
+                // Admin puede leer settings directamente
+                db.ref('settings/drive_privado_visible').once('value').then(snapshot => {
+                    driveVisibility = snapshot.val() === true;
                     updateDriveVisibilityUI();
-                }
-                
-                // Aplicar visibilidad al tab para todos los usuarios
-                const driveTab = document.getElementById('tab-drive_privado');
+                    applyDriveVisibility();
+                }).catch(error => {
+                    console.error('Error cargando visibilidad de drive:', error);
+                    driveVisibility = false;
+                    updateDriveVisibilityUI();
+                    applyDriveVisibility();
+                });
+            } else {
+                // Para usuarios normales, intentar leer configuración pública o usar valor por defecto
+                db.ref('public/drive_privado_visible').once('value').then(snapshot => {
+                    driveVisibility = snapshot.val() === true;
+                    applyDriveVisibility();
+                    console.log('Drive Privado visibilidad (pública):', driveVisibility ? 'VISIBLE' : 'OCULTO');
+                }).catch(error => {
+                    // Si no hay configuración pública, mantener oculto
+                    console.log('Sin configuración pública - Drive Privado permanece oculto');
+                    driveVisibility = false;
+                    applyDriveVisibility();
+                });
+            }
+        }
+        
+        function applyDriveVisibility() {
+            // Aplicar visibilidad al tab para todos los usuarios
+            const driveTab = document.getElementById('tab-drive_privado');
+            if (driveTab) {
                 if (driveVisibility) {
                     driveTab.classList.remove('admin-only');
                     driveTab.classList.add('drive-visible');
@@ -718,28 +740,7 @@ let currentPackName = "perubpm_pack";
                     driveTab.classList.add('admin-only');
                     driveTab.classList.remove('drive-visible');
                 }
-                
-                console.log('Drive Privado visibilidad cargada:', driveVisibility ? 'VISIBLE' : 'OCULTO');
-            }).catch(error => {
-                // Silenciar error de permisos para usuarios normales
-                if (error.message && error.message.includes('permission_denied')) {
-                    console.log('Usuario sin permisos de admin - Drive Privado permanece oculto');
-                    driveVisibility = false;
-                } else {
-                    console.error('Error cargando visibilidad de drive:', error);
-                }
-                
-                // Por defecto oculto si hay error o no hay permisos
-                driveVisibility = false;
-                if (currentUserIsAdmin) {
-                    updateDriveVisibilityUI();
-                }
-                
-                // Asegurar que el tab esté oculto para usuarios sin permisos
-                const driveTab = document.getElementById('tab-drive_privado');
-                driveTab.classList.add('admin-only');
-                driveTab.classList.remove('drive-visible');
-            });
+            }
         }
 
         function addUser() {
