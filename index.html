@@ -68,6 +68,9 @@ Mobile UI
         .del-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
         .edit-btn { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
         .img-btn { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+        
+        .admin-only { display: none; }
+        .is-admin .admin-only { display: block; }
 
         .loader-line { height: 3px; width: 100%; position: relative; overflow: hidden; background: rgba(255,255,255,0.05); border-radius: 10px; }
         .loader-line::after { content: ''; position: absolute; left: -50%; height: 100%; width: 50%; background: var(--accent); animation: loading 1.5s infinite; }
@@ -187,7 +190,7 @@ Mobile UI
             <div onclick="changeSection('video_remixes_latinos')" id="tab-video_remixes_latinos" class="nav-tab">Video Remixes Latinos</div>
             <div onclick="changeSection('backups')" id="tab-backups" class="nav-tab">Backups 2026</div>
             <div onclick="changeSection('editores_peruanos')" id="tab-editores_peruanos" class="nav-tab">Editores Peruanos</div>
-            <div onclick="changeSection('drive_privado')" id="tab-drive_privado" class="nav-tab">Drive Privado</div>
+            <div onclick="changeSection('drive_privado')" id="tab-drive_privado" class="nav-tab admin-only">Drive Privado</div>
         </nav>
 
         <div id="musicSearchResults" class="hidden mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
