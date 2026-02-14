@@ -1393,8 +1393,6 @@ let currentPackName = "perubpm_pack";
         // ============================================
 
         async function fetchWithRetry(url, retries = 3) {
-    
-
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();
@@ -1410,16 +1408,12 @@ let currentPackName = "perubpm_pack";
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
-
             
             return await response.json();
 
         } catch (err) {
-            
-
             // Último intento → usar proxy de Vercel
             if (i === retries - 1) {
-                
                 const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
                 const proxyRes = await fetch(proxyUrl);
                 if (!proxyRes.ok) throw new Error(`Proxy Vercel falló: HTTP ${proxyRes.status}`);
@@ -1427,7 +1421,6 @@ let currentPackName = "perubpm_pack";
             }
             
             if (i < retries - 1) {
-                `);
                 await new Promise(r => setTimeout(r, 2000));
             }
         }
