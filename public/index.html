@@ -1441,19 +1441,14 @@ let currentPackName = "perubpm_pack";
         // ============================================
 
         async function fetchPackageContents(packageId, depth = 0) {
-            }📂 Explorando paquete: ${packageId} (nivel ${depth})`);
-            
             try {
                 const detail = await fetchWithRetry(`https://api.perubpm.com/catalog/packages/folder/${packageId}`);
                 
                 if (detail.remixes && detail.remixes.length > 0) {
-                    }🎵 Encontrados ${detail.remixes.length} remixes`);
                     return detail.remixes;
                 }
                 
                 if (detail.packages && detail.packages.length > 0) {
-                    }📁 Encontradas ${detail.packages.length} subcarpetas, explorando...`);
-                    
                     let allRemixes = [];
                     for (const subPackage of detail.packages) {
                         await new Promise(r => setTimeout(r, 1000));
@@ -1461,41 +1456,29 @@ let currentPackName = "perubpm_pack";
                         allRemixes = allRemixes.concat(subRemixes);
                     }
                     
-                    }✅ Total acumulado: ${allRemixes.length} remixes`);
                     return allRemixes;
                 }
                 
-                }⚠️ Carpeta vacía`);
                 return [];
                 
             } catch (error) {
-                }❌ Error explorando paquete ${packageId}:`, error);
                 return [];
             }
         }
 
         async function processPackageRecursive(packData, depth = 0) {
-            }🔍 Procesando: ${packData.name} (nivel ${depth})`);
-            
             if (packData.packages && packData.packages.length > 0) {
-                }📁 Tiene ${packData.packages.length} subcarpetas`);
-                
                 for (let sub of packData.packages) {
                     await new Promise(r => setTimeout(r, 1500));
-                    }  📂 Explorando subcarpeta: ${sub.name}`);
                     
                     const subRemixes = await fetchPackageContents(sub.id, depth + 1);
                     sub.remixes = subRemixes;
-                    
-                    }  ✅ ${sub.name}: ${subRemixes.length} archivos`);
                 }
             }
             
             if ((!packData.packages || packData.packages.length === 0) && packData.id) {
-                }🎵 Obteniendo remixes directos...`);
                 const remixes = await fetchPackageContents(packData.id, depth);
                 packData.remixes = remixes;
-                }✅ ${remixes.length} remixes obtenidos`);
             }
             
             return packData;
@@ -1549,35 +1532,21 @@ let currentPackName = "perubpm_pack";
                 
                 btn.disabled = true;
                 statusArea.classList.remove('hidden');
-                
-                }`);
-                
-                
-                
-                }\n`);
 
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
                     statusLabel.innerText = `SINCRONIZANDO: ${item.slug || item.name || 'ITEM'} (${i+1}/${items.length})`;
-                    
-                    }`);
-                    
-                    }\n`);
                     
                     try {
                         let packData;
                         
                         // Si el item ya tiene la información completa (packages, remixes), usarlo directamente
                         if (item.packages || item.remixes) {
-                            `);
                             packData = item;
                         } else {
-                            
                             packData = await fetchWithRetry(`https://api.perubpm.com/catalog/packages/slug/${item.slug}`);
-                            
                         }
                         
-                        ...`);
                         const processedPack = await processPackageRecursive(packData);
                         
                         let totalFiles = 0;
@@ -1586,11 +1555,6 @@ let currentPackName = "perubpm_pack";
                             if (pkg.packages) pkg.packages.forEach(countFiles);
                         };
                         countFiles(processedPack);
-                        
-                        
-                        
-                        
-                        
                         
                         const sanitized = sanitizePackData(processedPack);
                         
@@ -1611,9 +1575,6 @@ let currentPackName = "perubpm_pack";
                         await new Promise(r => setTimeout(r, 1000)); 
                         
                     } catch (err) {
-                        
-                        
-                        
                         const continuar = confirm(
                             `❌ Error procesando "${item.slug}":\n\n` +
                             `${err.message}\n\n` +
@@ -1622,15 +1583,10 @@ let currentPackName = "perubpm_pack";
                         );
                         
                         if (!continuar) {
-                            
                             break;
                         }
                     }
                 }
-                
-                }`);
-                
-                }\n`);
                 
                 alert("✅ Sincronización Completa\n\nRevisa la consola (F12) para ver detalles de la exploración");
                 statusArea.classList.add('hidden');
@@ -1639,7 +1595,6 @@ let currentPackName = "perubpm_pack";
                 changeSection(target);
                 
             } catch (e) { 
-                
                 handleError(e, "JSON Inválido o error de formato."); 
             }
             
