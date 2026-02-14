@@ -839,8 +839,6 @@ let currentPackName = "perubpm_pack";
                     const data = snap.val();
                     let parsed = [];
                     
-                    .length + ' items' : 'vacío');
-                    
                     if(data) {
                         Object.keys(data).forEach(id => {
                             parsed.push({ id, ...data[id], section: sec });
