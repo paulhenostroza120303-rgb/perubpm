@@ -11,12 +11,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('Descargando:', ref, name);
     const downloadUrl = `https://api.perubpm.com/catalog/drive/download/${ref}?fileName=${encodeURIComponent(name)}`;
     
-    // Descargar el archivo y servirlo al usuario
+    console.log('URL externa:', downloadUrl);
+    
+    // Descargar el archivo
     const response = await fetch(downloadUrl);
     
     if (!response.ok) {
+      console.error('Error en respuesta externa:', response.status, response.statusText);
       return res.redirect('/?error=archivo_no_encontrado');
     }
     
@@ -24,20 +28,24 @@ export default async function handler(req, res) {
     const contentType = response.headers.get('content-type') || 'application/octet-stream';
     const contentLength = response.headers.get('content-length');
     
+    console.log('Content-Type:', contentType);
+    console.log('Content-Length:', contentLength);
+    
     // Configurar headers para descarga
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(name)}"`);
     if (contentLength) {
       res.setHeader('Content-Length', contentLength);
     }
     
-    // Pipe del archivo al response
-    const { Readable } = require('stream');
-    const stream = Readable.from(response.body);
-    stream.pipe(res);
+    // Convertir el stream a buffer y enviarlo
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    res.send(buffer);
     
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error completo:', error);
     return res.redirect('/?error=error_descarga');
   }
 }
