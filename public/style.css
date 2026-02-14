@@ -1,0 +1,86 @@
+:root { 
+    --accent: #3b82f6; 
+    --bg: #020617; 
+    --card: #0f172a; 
+}
+
+body { 
+    background-color: var(--bg); 
+    color: #f8fafc; 
+    font-family: 'Inter', sans-serif; 
+    letter-spacing: -0.02em; 
+}
+
+.glass { 
+    background: rgba(15, 23, 42, 0.8); 
+    backdrop-filter: blur(20px); 
+    border: 1px solid rgba(255, 255, 255, 0.05); 
+}
+
+.btn-primary { 
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+    transition: 0.3s; 
+    box-shadow: 0 10px 20px -10px #3b82f6;
+}
+
+.btn-primary:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+.pack-card { 
+    background: var(--card); 
+    border: 1px solid rgba(255, 255, 255, 0.03); 
+    transition: all 0.4s; 
+    position: relative; 
+    overflow: hidden; 
+    cursor: pointer; 
+    border-radius: 2.5rem; 
+}
+
+.pack-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+
+.item-row { 
+    background: rgba(30, 41, 59, 0.3); 
+    border: 1px solid rgba(255, 255, 255, 0.05); 
+    transition: 0.2s; 
+}
+
+.item-row:hover { background: rgba(30, 41, 59, 0.7); border-color: var(--accent); }
+
+.input-admin {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    outline: none;
+    color: white;
+}
+
+.input-admin:focus { border-color: var(--accent); }
+
+.label-admin {
+    display: block;
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+/* Admin floating buttons */
+.admin-controls { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 5px; opacity: 0; transition: 0.3s; z-index: 50; }
+.is-admin .admin-controls { display: flex; }
+.pack-card:hover .admin-controls { opacity: 1; }
+.admin-btn { padding: 6px 10px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; transition: 0.2s; text-align: center; width: 75px; }
+.del-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+.edit-btn { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+
+.nav-tab { cursor: pointer; padding: 10px 20px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; transition: 0.3s; border: 1px solid transparent; white-space: nowrap; }
+.nav-tab.active { background: var(--accent); color: white; }
+.nav-tab:not(.active) { color: #64748b; border-color: rgba(255,255,255,0.05); }
+
+.month-divider { grid-column: 1 / -1; margin-top: 2rem; margin-bottom: 1rem; padding: 1rem 1.5rem; background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%); border-left: 4px solid var(--accent); border-radius: 0 1rem 1rem 0; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
