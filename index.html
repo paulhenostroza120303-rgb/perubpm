@@ -666,13 +666,12 @@ let currentPackName = "perubpm_pack";
             
             driveVisibility = document.getElementById('driveVisibilityToggle').checked;
             
-            // Guardar en múltiples rutas para asegurar compatibilidad
+            // Guardar en ambas rutas: settings (admin) y public (usuarios)
             Promise.all([
                 db.ref('settings/drive_privado_visible').set(driveVisibility),
-                db.ref('public/drive_privado_visible').set(driveVisibility),
-                db.ref('drive_privado_visible').set(driveVisibility)  // ruta alternativa
+                db.ref('public/drive_privado_visible').set(driveVisibility)
             ]).then(() => {
-                console.log('Visibilidad de Drive Privado actualizada en todas las rutas');
+                console.log('Visibilidad de Drive Privado actualizada en ambas rutas');
             }).catch(error => {
                 console.error('Error guardando visibilidad:', error);
             });
@@ -719,36 +718,14 @@ let currentPackName = "perubpm_pack";
                     applyDriveVisibility();
                 });
             } else {
-                // Para usuarios normales, intentar leer configuración pública
-                console.log('Usuario normal - Intentando leer configuración pública...');
-                
-                // Intentar múltiples rutas para mayor compatibilidad
-                const publicPath = db.ref('public/drive_privado_visible');
-                const altPath = db.ref('drive_privado_visible');
-                
-                // Primero intentar la ruta pública
-                publicPath.once('value').then(snapshot => {
-                    if (snapshot.exists()) {
-                        driveVisibility = snapshot.val() === true;
-                        console.log('Usuario normal - Visibilidad leída de public:', driveVisibility);
-                        applyDriveVisibility();
-                    } else {
-                        // Si no existe, intentar ruta alternativa
-                        return altPath.once('value');
-                    }
-                }).then(snapshot => {
-                    if (snapshot && snapshot.exists()) {
-                        driveVisibility = snapshot.val() === true;
-                        console.log('Usuario normal - Visibilidad leída de ruta alt:', driveVisibility);
-                        applyDriveVisibility();
-                    } else {
-                        // Si ninguna ruta existe, mantener oculto
-                        console.log('Sin configuración pública - Drive Privado permanece oculto');
-                        driveVisibility = false;
-                        applyDriveVisibility();
-                    }
+                // Para usuarios normales, leer configuración pública
+                console.log('Usuario normal - Leyendo configuración pública...');
+                db.ref('public/drive_privado_visible').once('value').then(snapshot => {
+                    driveVisibility = snapshot.val() === true;
+                    console.log('Usuario normal - Visibilidad leída de public:', driveVisibility);
+                    applyDriveVisibility();
                 }).catch(error => {
-                    console.log('Error leyendo configuración pública, manteniendo oculto:', error.message);
+                    console.log('Error leyendo configuración pública:', error.message);
                     driveVisibility = false;
                     applyDriveVisibility();
                 });
