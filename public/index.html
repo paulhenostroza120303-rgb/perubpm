@@ -1205,16 +1205,17 @@ const firebaseConfig = {
                 items.forEach(({ item, packNameLower, fullDateLabel }) => {
                     const pack = item.data || item;
                     
-                    // Obtener customImage desde diferentes rutas posibles
-                    let coverUrl = item.customImage || pack.customImage || item.data?.customImage || "";
+                    // Obtener customImage - primero intentar en item, luego en pack
+                    let coverUrl = item.customImage || pack.customImage;
                     
-                    // Si tiene imagen personalizada, convertir URL de Azure a proxy
-                    if (coverUrl && coverUrl.indexOf('blob') > -1 && coverUrl.indexOf('perubpm') > -1) {
+                    // Convertir URL de Azure a proxy si existe
+                    if (coverUrl && coverUrl.indexOf('blob.core.windows.net') > -1) {
                         var _0xaz4=[112,101,114,117,98,112,109,46,98,108,111,98,46,99,111,114,101,46,119,105,110,100,111,119,115,46,110,101,116];var _0xaz5=String.fromCharCode.apply(null,_0xaz4);
                         var _0xaz6=coverUrl.split(_0xaz5)[1];if(_0xaz6){coverUrl='/api/image?img='+_0xaz6.substring(1);}
                     }
+                    
                     // Si no tiene imagen personalizada, buscar en imageMap por nombre
-                    else if (!coverUrl) {
+                    if (!coverUrl) {
                         for (const key in imageMap) { 
                             if (packNameLower.includes(key)) { 
                                 coverUrl = imageMap[key]; 
