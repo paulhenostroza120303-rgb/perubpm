@@ -2154,6 +2154,7 @@ if (data.remixes) {
         // ============================================
 
         const validSections = ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos', 'drive_privado'];
+        let initialDataLoaded = false;
 
         function getPathFromUrl() {
             var path = window.location.pathname;
@@ -2168,6 +2169,8 @@ if (data.remixes) {
             var section = parts[0];
             var subfolder = parts[1];
 
+            console.log('🧭 Navegando a:', section, subfolder);
+
             if (validSections.indexOf(section) === -1) {
                 section = 'packs';
             }
@@ -2175,11 +2178,26 @@ if (data.remixes) {
             isHashNavigation = true;
             changeSection(section, false);
 
-            if (subfolder && globalData[section]) {
+            // Solo intentar abrir subcarpeta si los datos ya están cargados
+            if (subfolder && globalData[section] && globalData[section].length > 0) {
                 var pack = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
                 if (pack) {
+                    console.log('📁 Abriendo carpeta:', pack.name);
                     openFolder(pack, pack.isFree || false, false);
+                } else {
+                    console.log('⚠️ Pack no encontrado:', decodeURIComponent(subfolder));
                 }
+            } else if (subfolder) {
+                console.log('⏳ Esperando datos para abrir subcarpeta...');
+                // Reintentar después de un momento
+                setTimeout(function() {
+                    if (globalData[section] && globalData[section].length > 0) {
+                        var packRetry = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
+                        if (packRetry) {
+                            openFolder(packRetry, packRetry.isFree || false, false);
+                        }
+                    }
+                }, 2000);
             }
         }
 
@@ -2197,8 +2215,34 @@ if (data.remixes) {
             handleNavigation();
         });
 
-        // Navigation inicial
-        handleNavigation();
+        // Esperar a que los datos estén disponibles antes de navegar
+        function initNavigation() {
+            // Verificar si los datos ya están cargados
+            if (globalData.packs && globalData.packs.length > 0) {
+                handleNavigation();
+            } else {
+                console.log('⏳ Esperando carga de datos...');
+                // Reintentar cada 500ms hasta que los datos estén disponibles
+                var checkInterval = setInterval(function() {
+                    if (globalData.packs && globalData.packs.length > 0) {
+                        clearInterval(checkInterval);
+                        console.log('✅ Datos cargados, iniciando navegación...');
+                        handleNavigation();
+                    }
+                }, 500);
+                
+                // Timeout máximo de 10 segundos
+                setTimeout(function() {
+                    clearInterval(checkInterval);
+                    handleNavigation();
+                }, 10000);
+            }
+        }
+
+        // Iniciar navegación después de que Firebase esté listo
+        window.addEventListener('load', function() {
+            setTimeout(initNavigation, 1000);
+        });
 
     </script>
 </body>
