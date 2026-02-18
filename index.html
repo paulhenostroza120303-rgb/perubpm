@@ -390,6 +390,7 @@ let currentPackName = "perubpm_pack";
         let currentUserEmail = "";
         let currentUserIsAdmin = false;
         let currentSection = "packs";
+        let isHashNavigation = false;
         
         // Sistema Gratuito
         let pendingDownloadUrl = "";
@@ -882,8 +883,6 @@ let currentPackName = "perubpm_pack";
                 drivePrivadoFiles = [];
             }
         }
-
-        let isHashNavigation = false;
 
         function changeSection(section, updateHash = true) {
             currentSection = section;
@@ -2157,21 +2156,21 @@ if (data.remixes) {
         const validSections = ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos', 'drive_privado'];
 
         function handleHashNavigation() {
-            const hash = window.location.hash.slice(1);
+            var hash = window.location.hash.slice(1);
             if (!hash) {
                 changeSection('packs', false);
                 return;
             }
 
-            const parts = hash.split('/');
-            const section = parts[0];
-            const subfolder = parts[1];
+            var parts = hash.split('/');
+            var section = parts[0];
+            var subfolder = parts[1];
 
-            if (validSections.includes(section)) {
+            if (validSections.indexOf(section) !== -1) {
                 isHashNavigation = true;
                 changeSection(section, false);
                 if (subfolder && globalData[section]) {
-                    const pack = globalData[section].find(p => p.name === decodeURIComponent(subfolder));
+                    var pack = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
                     if (pack) {
                         openFolder(pack, pack.isFree || false, false);
                     }
@@ -2183,6 +2182,12 @@ if (data.remixes) {
         window.addEventListener('popstate', function(event) {
             handleHashNavigation();
         });
+        
+        // Ejecutar inmediatamente al cargar script
+        (function() {
+            handleHashNavigation();
+        })();
+
         window.addEventListener('load', handleHashNavigation);
 
     </script>
