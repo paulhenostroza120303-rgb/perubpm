@@ -18,45 +18,50 @@ export default async function handler(req, res) {
   const apiUrl = `https://api.perubpm.com/catalog/drive/download/${ref}?fileName=${encodeURIComponent(name)}`;
 
   try {
-    const apiResponse = await fetch(apiUrl);
+    // Primero obtener headers para saber el tamaño total
+    const headResponse = await fetch(apiUrl, { method: 'HEAD' });
     
-    if (!apiResponse.ok) {
-      return res.status(apiResponse.status).json({ error: "Audio not found" });
+    if (!headResponse.ok) {
+      return res.status(headResponse.status).json({ error: "Audio not found" });
     }
 
-    const contentType = apiResponse.headers.get("content-type") || "audio/mpeg";
+    const contentLength = parseInt(headResponse.headers.get('content-length') || '0');
+    const contentType = headResponse.headers.get("content-type") || "audio/mpeg";
+
+    // Calcular cuántos bytes para 60 segundos
+    // Asumiendo ~128kbps = 16KB/segundo = 960KB para 60 segundos
+    const PREVIEW_DURATION = 60; // segundos
+    const BITRATE_ESTIMATE = 16000; // bytes por segundo (128kbps)
+    const maxBytes = PREVIEW_DURATION * BITRATE_ESTIMATE;
+    
+    // Usar Range header para obtener solo los primeros bytes
+    const rangeEnd = Math.min(maxBytes, contentLength) - 1;
+    
+    const audioResponse = await fetch(apiUrl, {
+      headers: {
+        'Range': `bytes=0-${rangeEnd}`
+      }
+    });
+
+    if (!audioResponse.ok) {
+      return res.status(audioResponse.status).json({ error: "Failed to fetch audio" });
+    }
 
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Length", audioResponse.headers.get("content-length"));
     res.setHeader("Accept-Ranges", "bytes");
     res.setHeader("Cache-Control", "public, max-age=3600");
-
-    // Configurar timeout de 60 segundos para preview
-    const PREVIEW_DURATION_MS = 60000; // 1 minuto
-    
-    // Configurar timeout
-    const timeoutId = setTimeout(() => {
-      console.log('Preview terminado - cerrando conexión');
-      res.end();
-    }, PREVIEW_DURATION_MS);
+    res.setHeader("Content-Range", `bytes 0-${rangeEnd}/${contentLength}`);
+    res.status(206); // Partial Content
 
     // Stream el audio
-    const stream = apiResponse.body;
-    let bytesSent = 0;
-    const maxBytes = 10 * 1024 * 1024; // 10MB máximo
+    const stream = audioResponse.body;
     
     for await (const chunk of stream) {
-      if (bytesSent >= maxBytes) {
-        clearTimeout(timeoutId);
-        res.end();
-        break;
-      }
-      
       res.write(chunk);
-      bytesSent += chunk.length;
     }
     
-    clearTimeout(timeoutId);
     res.end();
 
   } catch (err) {

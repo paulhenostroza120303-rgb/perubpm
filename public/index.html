@@ -1390,8 +1390,8 @@ const firebaseConfig = {
                     
                     return `
                     <div class="item-row p-4 rounded-xl flex justify-between items-center gap-4">
-                        <div class="flex items-center gap-3">
-                            <button onclick="playAudio('${refId}', '${fileName}', this)" class="play-btn bg-blue-600/20 text-blue-400 px-3 py-2 rounded-lg text-xs font-black uppercase hover:bg-blue-600 hover:text-white transition-all">▶</button>
+                        <div class="flex items-center gap-3 flex-1">
+                            <button onclick="playAudio('${refId}', '${fileName}', this)" class="play-btn bg-blue-600/20 text-blue-400 px-3 py-2 rounded-lg text-xs font-black uppercase hover:bg-blue-600 hover:text-white transition-all w-10">▶</button>
                             <div class="truncate flex-1">
                                 <span class="search-hit-badge${m.isFree ? ' free' : ''}">${m.section}${m.isFree ? ' 🆓' : ''}</span>
                                 <h5 class="text-[10px] font-black uppercase truncate">${m.name}</h5>
@@ -1947,6 +1947,105 @@ if (data.remixes) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+        
+        function seekAudio(percent, progressEl) {
+            if (currentAudio && currentAudio.duration) {
+                const newTime = (percent / 100) * Math.min(currentAudio.duration, 60);
+                currentAudio.currentTime = newTime;
+            }
+        }
+        
+        async function playAudio(refId, fileName, btn) {
+            const progressEl = document.getElementById('progress-' + refId);
+            
+            // Si ya hay un audio reproduciéndose y es el mismo, toggle pause
+            if (currentAudio && currentRefId === refId) {
+                if (currentAudio.paused) {
+                    currentAudio.play();
+                    btn.innerText = '⏸';
+                } else {
+                    currentAudio.pause();
+                    btn.innerText = '▶';
+                }
+                return;
+            }
+            
+            // Si hay otro audio sonando, detenerlo
+            if (currentAudio) {
+                currentAudio.pause();
+                const oldProgress = document.getElementById('progress-' + currentRefId);
+                if (oldProgress) {
+                    oldProgress.classList.add('hidden');
+                    oldProgress.querySelector('.progress-fill').style.width = '0%';
+                    oldProgress.querySelector('.progress-time').innerText = '0:00 / 1:00';
+                }
+                document.querySelectorAll('.play-btn').forEach(b => b.innerText = '▶');
+            }
+            
+            const realFileName = decodeURIComponent(fileName);
+            
+            btn.innerText = '⏳';
+            
+            // Mostrar progress bar
+            if (progressEl) {
+                progressEl.classList.remove('hidden');
+            }
+            
+            try {
+                console.log('Reproduciendo ref:', refId, 'name:', realFileName);
+                
+                const previewUrl = `/api/preview?ref=${refId}&name=${encodeURIComponent(realFileName)}`;
+                console.log('Preview URL:', previewUrl);
+                
+                currentAudio = new Audio(previewUrl);
+                currentRefId = refId;
+                
+                btn.innerText = '⏸';
+                
+                currentAudio.play().catch(err => {
+                    console.error('Error al reproducir:', err);
+                    btn.innerText = '▶';
+                    currentAudio = null;
+                    if (progressEl) progressEl.classList.add('hidden');
+                });
+                
+                // Actualizar progreso
+                currentProgressInterval = setInterval(() => {
+                    if (currentAudio && progressEl && !currentAudio.paused) {
+                        const current = Math.min(currentAudio.currentTime, 60);
+                        const duration = 60;
+                        const percent = (current / duration) * 100;
+                        progressEl.querySelector('.progress-fill').style.width = percent + '%';
+                        progressEl.querySelector('.progress-time').innerText = formatTime(current) + ' / ' + formatTime(duration);
+                    }
+                }, 250);
+                
+                // Cuando termine, restaurar
+                currentAudio.onended = function() {
+                    btn.innerText = '▶';
+                    currentAudio = null;
+                    clearInterval(currentProgressInterval);
+                    if (progressEl) {
+                        progressEl.querySelector('.progress-fill').style.width = '100%';
+                        progressEl.querySelector('.progress-time').innerText = '1:00 / 1:00';
+                    }
+                };
+                
+                currentAudio.onpause = function() {
+                    btn.innerText = '▶';
+                };
+                
+                currentAudio.onplay = function() {
+                    btn.innerText = '⏸';
+                };
+                
+            } catch (err) {
+                console.error('Error:', err);
+                btn.innerText = '▶';
+                currentAudio = null;
+                if (progressEl) progressEl.classList.add('hidden');
+            }
         }
         
         async function playAudio(refId, fileName, btn) {
