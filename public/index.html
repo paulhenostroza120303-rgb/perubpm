@@ -1206,11 +1206,14 @@ const firebaseConfig = {
                     const pack = item.data || item;
                     let coverUrl = item.customImage || "";
                     var _0xaz1=[98,108,111,98,46,99,111,114,101,46,119,105,110,100,111,119,115,46,110,101,116];var _0xaz2=function(_0x3a){return String.fromCharCode.apply(null,_0x3a);};var _0xaz3=_0xaz2(_0xaz1);
-                    if (coverUrl.indexOf(_0xaz3) > -1) {
+                    
+                    // Si tiene imagen personalizada de Azure, convertir a proxy
+                    if (coverUrl && coverUrl.indexOf(_0xaz3) > -1) {
                         var _0xaz4=[112,101,114,117,98,112,109,46,98,108,111,98,46,99,111,114,101,46,119,105,110,100,111,119,115,46,110,101,116];var _0xaz5=_0xaz2(_0xaz4);
                         var _0xaz6=coverUrl.split(_0xaz5)[1];if(_0xaz6){coverUrl='/api/image?img='+_0xaz6.substring(1);}
                     }
-                    if (!coverUrl || coverUrl.indexOf(_0xaz3) > -1) {
+                    // Si no tiene imagen personalizada, buscar en imageMap por nombre
+                    else if (!coverUrl) {
                         for (const key in imageMap) { 
                             if (packNameLower.includes(key)) { 
                                 coverUrl = imageMap[key]; 
@@ -1218,7 +1221,8 @@ const firebaseConfig = {
                             } 
                         }
                     }
-                    if (!coverUrl || coverUrl.indexOf(_0xaz3) > -1) coverUrl = imageMap["otros"];
+                    // Si sigue sin tener imagen, usar "otros"
+                    if (!coverUrl) coverUrl = imageMap["otros"];
 
                     const sectionName = sectionLabels[item.section] || "PACK";
                     const isFreePack = item.isFree;
