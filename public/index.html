@@ -1942,24 +1942,45 @@ if (data.remixes) {
         let currentAudio = null;
         let currentProgressInterval = null;
         let currentRefId = null;
+        let currentBtn = null;
         
         function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return mins + ':' + (secs < 10 ? '0' : '') + secs;
         }
         
-        function seekAudio(percent, progressEl) {
-            if (currentAudio && currentAudio.duration) {
-                const newTime = (percent / 100) * Math.min(currentAudio.duration, 60);
-                currentAudio.currentTime = newTime;
+        function stopCurrentAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            if (currentProgressInterval) {
+                clearInterval(currentProgressInterval);
+                currentProgressInterval = null;
+            }
+            if (currentRefId) {
+                const oldProgress = document.getElementById('progress-' + currentRefId);
+                if (oldProgress) {
+                    oldProgress.classList.add('hidden');
+                    const fill = oldProgress.querySelector('.progress-fill');
+                    const time = oldProgress.querySelector('.progress-time');
+                    if (fill) fill.style.width = '0%';
+                    if (time) time.innerText = '0:00 / 1:00';
+                }
+                currentRefId = null;
+            }
+            if (currentBtn) {
+                currentBtn.innerText = '▶';
+                currentBtn = null;
             }
         }
         
         async function playAudio(refId, fileName, btn) {
             const progressEl = document.getElementById('progress-' + refId);
             
-            // Si ya hay un audio reproduciéndose y es el mismo, toggle pause
+            // Si el mismo audio ya está reproduciendo, pausar
             if (currentAudio && currentRefId === refId) {
                 if (currentAudio.paused) {
                     currentAudio.play();
@@ -1971,80 +1992,72 @@ if (data.remixes) {
                 return;
             }
             
-            // Si hay otro audio sonando, detenerlo
-            if (currentAudio) {
-                currentAudio.pause();
-                const oldProgress = document.getElementById('progress-' + currentRefId);
-                if (oldProgress) {
-                    oldProgress.classList.add('hidden');
-                    oldProgress.querySelector('.progress-fill').style.width = '0%';
-                    oldProgress.querySelector('.progress-time').innerText = '0:00 / 1:00';
-                }
-                document.querySelectorAll('.play-btn').forEach(b => b.innerText = '▶');
-            }
+            // Detener cualquier audio anterior
+            stopCurrentAudio();
             
             const realFileName = decodeURIComponent(fileName);
-            
             btn.innerText = '⏳';
+            currentBtn = btn;
             
-            // Mostrar progress bar
             if (progressEl) {
                 progressEl.classList.remove('hidden');
+                progressEl.querySelector('.progress-fill').style.width = '0%';
+                progressEl.querySelector('.progress-time').innerText = '0:00 / 1:00';
             }
             
             try {
-                console.log('Reproduciendo ref:', refId, 'name:', realFileName);
-                
-                const previewUrl = `/api/preview?ref=${refId}&name=${encodeURIComponent(realFileName)}`;
-                console.log('Preview URL:', previewUrl);
+                const previewUrl = '/api/preview?ref=' + refId + '&name=' + encodeURIComponent(realFileName);
                 
                 currentAudio = new Audio(previewUrl);
                 currentRefId = refId;
                 
-                btn.innerText = '⏸';
+                // Evento cuando carga suficiente para reproducir
+                currentAudio.oncanplay = function() {
+                    btn.innerText = '⏸';
+                    currentAudio.play().catch(e => {
+                        console.error('Play error:', e);
+                        btn.innerText = '▶';
+                    });
+                };
                 
-                currentAudio.play().catch(err => {
-                    console.error('Error al reproducir:', err);
-                    btn.innerText = '▶';
-                    currentAudio = null;
-                    if (progressEl) progressEl.classList.add('hidden');
-                });
-                
-                // Actualizar progreso
-                currentProgressInterval = setInterval(() => {
-                    if (currentAudio && progressEl && !currentAudio.paused) {
+                // Actualizar progreso cada 100ms
+                currentProgressInterval = setInterval(function() {
+                    if (currentAudio && progressEl && currentRefId === refId) {
                         const current = Math.min(currentAudio.currentTime, 60);
-                        const duration = 60;
-                        const percent = (current / duration) * 100;
+                        const percent = (current / 60) * 100;
                         progressEl.querySelector('.progress-fill').style.width = percent + '%';
-                        progressEl.querySelector('.progress-time').innerText = formatTime(current) + ' / ' + formatTime(duration);
+                        progressEl.querySelector('.progress-time').innerText = formatTime(current) + ' / 1:00';
                     }
-                }, 250);
+                }, 100);
                 
-                // Cuando termine, restaurar
+                // Cuando termina
                 currentAudio.onended = function() {
                     btn.innerText = '▶';
-                    currentAudio = null;
                     clearInterval(currentProgressInterval);
                     if (progressEl) {
                         progressEl.querySelector('.progress-fill').style.width = '100%';
                         progressEl.querySelector('.progress-time').innerText = '1:00 / 1:00';
                     }
+                    currentAudio = null;
+                    currentRefId = null;
                 };
                 
-                currentAudio.onpause = function() {
+                // Error
+                currentAudio.onerror = function(e) {
+                    console.error('Audio error:', e);
                     btn.innerText = '▶';
-                };
-                
-                currentAudio.onplay = function() {
-                    btn.innerText = '⏸';
+                    clearInterval(currentProgressInterval);
+                    if (progressEl) progressEl.classList.add('hidden');
+                    currentAudio = null;
+                    currentRefId = null;
                 };
                 
             } catch (err) {
                 console.error('Error:', err);
                 btn.innerText = '▶';
-                currentAudio = null;
                 if (progressEl) progressEl.classList.add('hidden');
+                currentAudio = null;
+                currentRefId = null;
             }
         }
         
