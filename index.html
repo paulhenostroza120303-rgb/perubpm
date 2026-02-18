@@ -365,6 +365,13 @@ Mobile UI
     </div>
 
     <script>
+        // Desactivar logs en producción
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            console.log = function() {};
+            console.error = function() {};
+            console.warn = function() {};
+        }
+        
         // ===============================
 // VARIABLES GLOBALES DEL PACK
 // ===============================
