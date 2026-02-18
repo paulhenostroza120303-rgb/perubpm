@@ -365,65 +365,33 @@ Mobile UI
     </div>
 
     <script>
-        // Obfuscar strings importantes - Versión mejorada
-        var _0x2a=['aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9mb2xkZXIv','aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9zbHVnLw==','cGVydWJwbS05NjM3Ny5maXJlYmFzZWFwcC5jb20=','aHR0cHM6Ly9wZXJ1YnBtLTk2Mzc3LWRlZmF1bHQtcnRkYi5maXJlYmFzZWlvy5jb20=','cGVydWJwbS05NjM3Nw=='];
-        (function(_0x4dx2e,_0x2a3b){
-            var _0x3e2c=function(_0x5d4e){
-                while(--_0x5d4e){
-                    _0x4dx2e['push'](_0x4dx2e['shift']());
-                }
-            };
-            _0x3e2c(++_0x2a3b);
-        }(_0x2a,0x80));
+        // URLs de API
+        var API_FOLDER = 'https://api.perubpm.com/catalog/packages/folder/';
+        var API_SLUG = 'https://api.perubpm.com/catalog/packages/slug/';
         
-        var _0x3e2c=function(_0x4dx2e,_0x2a3b){
-            _0x4dx2e=_0x4dx2e-0x0;
-            var _0x5d4e=_0x2a[_0x4dx2e];
-            return _0x5d4e;
-        };
-        
-        function _0x5d4e(_0x3e2c){
-            var _0x4dx2e=atob(_0x3e2c);
-            return _0x4dx2e;
-        }
-        
-        var API_FOLDER=_0x5d4e(_0x2a[0]);
-        var API_SLUG=_0x5d4e(_0x2a[1]);
-        var AUTH_DOMAIN=_0x5d4e(_0x2a[2]);
-        var DATABASE_URL=_0x5d4e(_0x2a[3]);
-        var PROJECT_ID=_0x5d4e(_0x2a[4]);
-        
-        // Desactivar logs en producción - Versión mejorada
+        // Desactivar logs en producción
         if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
             console.log = function() {};
             console.error = function() {};
             console.warn = function() {};
             console.info = function() {};
             console.debug = function() {};
-            // Ocultar también el objeto console por completo
-            try {
-                delete console.log;
-                delete console.error;
-                delete console.warn;
-                delete console.info;
-                delete console.debug;
-            } catch(e) {}
         }
         
         // ===============================
 // VARIABLES GLOBALES DEL PACK
 // ===============================
 let currentPackFiles = [];
-let currentPackName = "perubpm-pack";
+let currentPackName = "perubpm_pack";
         // ============================================
-        // CONFIGURACIÓN DE FIREBASE
-        // ============================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyCgAWYxDqUYm0vzhi9e7AqbCJ96jeD_gfg",
-            authDomain: AUTH_DOMAIN,
-            databaseURL: DATABASE_URL,
-            projectId: PROJECT_ID
-        };
+// CONFIGURACIÓN DE FIREBASE
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyCgAWYxDqUYm0vzhi9e7AqbCJ96jeD_gfg",
+    authDomain: "perubpm-96377.firebaseapp.com",
+    databaseURL: "https://perubpm-96377-default-rtdb.firebaseio.com",
+    projectId: "perubpm-96377"
+};
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
@@ -1427,8 +1395,6 @@ let currentPackName = "perubpm-pack";
         // ============================================
 
         async function fetchWithRetry(url, retries = 3) {
-    console.log(`🔄 Fetching: ${url}`);
-
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();
@@ -1445,11 +1411,9 @@ let currentPackName = "perubpm-pack";
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            console.log("✅ Fetch directo exitoso");
             return await response.json();
 
         } catch (err) {
-            console.warn(`❌ Intento directo ${i + 1} falló`);
 
             // Último intento → usar proxy de Vercel
             if (i === retries - 1) {
@@ -1475,19 +1439,14 @@ let currentPackName = "perubpm-pack";
         // ============================================
 
         async function fetchPackageContents(packageId, depth = 0) {
-            console.log(`${'  '.repeat(depth)}📂 Explorando paquete: ${packageId} (nivel ${depth})`);
-            
             try {
                 const detail = await fetchWithRetry(API_FOLDER + packageId);
                 
                 if (detail.remixes && detail.remixes.length > 0) {
-                    console.log(`${'  '.repeat(depth)}🎵 Encontrados ${detail.remixes.length} remixes`);
                     return detail.remixes;
                 }
                 
                 if (detail.packages && detail.packages.length > 0) {
-                    console.log(`${'  '.repeat(depth)}📁 Encontradas ${detail.packages.length} subcarpetas, explorando...`);
-                    
                     let allRemixes = [];
                     for (const subPackage of detail.packages) {
                         await new Promise(r => setTimeout(r, 1000));
@@ -1495,41 +1454,29 @@ let currentPackName = "perubpm-pack";
                         allRemixes = allRemixes.concat(subRemixes);
                     }
                     
-                    console.log(`${'  '.repeat(depth)}✅ Total acumulado: ${allRemixes.length} remixes`);
                     return allRemixes;
                 }
                 
-                console.log(`${'  '.repeat(depth)}⚠️ Carpeta vacía`);
                 return [];
                 
             } catch (error) {
-                console.error(`${'  '.repeat(depth)}❌ Error explorando paquete ${packageId}:`, error);
                 return [];
             }
         }
 
         async function processPackageRecursive(packData, depth = 0) {
-            console.log(`${'  '.repeat(depth)}🔍 Procesando: ${packData.name} (nivel ${depth})`);
-            
             if (packData.packages && packData.packages.length > 0) {
-                console.log(`${'  '.repeat(depth)}📁 Tiene ${packData.packages.length} subcarpetas`);
-                
                 for (let sub of packData.packages) {
                     await new Promise(r => setTimeout(r, 1500));
-                    console.log(`${'  '.repeat(depth)}  📂 Explorando subcarpeta: ${sub.name}`);
                     
                     const subRemixes = await fetchPackageContents(sub.id, depth + 1);
                     sub.remixes = subRemixes;
-                    
-                    console.log(`${'  '.repeat(depth)}  ✅ ${sub.name}: ${subRemixes.length} archivos`);
                 }
             }
             
             if ((!packData.packages || packData.packages.length === 0) && packData.id) {
-                console.log(`${'  '.repeat(depth)}🎵 Obteniendo remixes directos...`);
                 const remixes = await fetchPackageContents(packData.id, depth);
                 packData.remixes = remixes;
-                console.log(`${'  '.repeat(depth)}✅ ${remixes.length} remixes obtenidos`);
             }
             
             return packData;
@@ -1583,35 +1530,21 @@ let currentPackName = "perubpm-pack";
                 
                 btn.disabled = true;
                 statusArea.classList.remove('hidden');
-                
-                console.log(`\n${'='.repeat(60)}`);
-                console.log(`📦 SINCRONIZACIÓN RECURSIVA INICIADA`);
-                console.log(`📊 Total de packs a procesar: ${items.length}`);
-                console.log(`🎯 Destino: ${target}`);
-                console.log(`${'='.repeat(60)}\n`);
 
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
                     statusLabel.innerText = `SINCRONIZANDO: ${item.slug || item.name || 'ITEM'} (${i+1}/${items.length})`;
-                    
-                    console.log(`\n${'─'.repeat(60)}`);
-                    console.log(`🔄 [${i+1}/${items.length}] Procesando: ${item.slug || item.name}`);
-                    console.log(`${'─'.repeat(60)}\n`);
                     
                     try {
                         let packData;
                         
                         // Si el item ya tiene la información completa (packages, remixes), usarlo directamente
                         if (item.packages || item.remixes) {
-                            console.log(`📦 Usando datos del pack existentes (sin llamada API)`);
                             packData = item;
                         } else {
-                            console.log(`📡 Paso 1: Obteniendo información del pack...`);
                             packData = await fetchWithRetry(API_SLUG + item.slug);
-                            console.log(`✅ Pack obtenido: ${packData.name}`);
                         }
                         
-                        console.log(`\n🔍 Paso 2: Explorando estructura completa (recursivo)...`);
                         const processedPack = await processPackageRecursive(packData);
                         
                         let totalFiles = 0;
@@ -1621,16 +1554,10 @@ let currentPackName = "perubpm-pack";
                         };
                         countFiles(processedPack);
                         
-                        console.log(`\n📊 Resumen de exploración:`);
-                        console.log(`   📁 Paquetes encontrados: ${processedPack.packages ? processedPack.packages.length : 0}`);
-                        console.log(`   🎵 Total de archivos: ${totalFiles}`);
-                        
-                        console.log(`\n🧹 Paso 3: Limpiando datos...`);
                         const sanitized = sanitizePackData(processedPack);
                         
                         let finalDate = (manualDate) ? `${manualDate}T12:00:00Z` : new Date().toISOString();
                         
-                        console.log(`\n💾 Paso 4: Guardando en Firebase...`);
                         await db.ref(target).push({
                             data: sanitized,
                             originalDate: finalDate,
@@ -1638,16 +1565,9 @@ let currentPackName = "perubpm-pack";
                             timestamp: Date.now()
                         });
                         
-                        console.log(`\n✅ ${item.slug} SINCRONIZADO EXITOSAMENTE`);
-                        console.log(`   📦 Pack completo guardado en: ${target}`);
-                        console.log(`   🎵 ${totalFiles} archivos incluidos\n`);
-                        
                         await new Promise(r => setTimeout(r, 1000)); 
                         
                     } catch (err) {
-                        console.error(`\n❌ ERROR EN ${item.slug}:`, err);
-                        console.error(`📝 Detalles:`, err.message);
-                        
                         const continuar = confirm(
                             `❌ Error procesando "${item.slug}":\n\n` +
                             `${err.message}\n\n` +
@@ -1656,15 +1576,12 @@ let currentPackName = "perubpm-pack";
                         );
                         
                         if (!continuar) {
-                            console.log(`\n⚠️ Sincronización cancelada por el usuario`);
                             break;
                         }
                     }
                 }
                 
-                console.log(`\n${'='.repeat(60)}`);
-                console.log(`✅ SINCRONIZACIÓN RECURSIVA COMPLETADA`);
-                console.log(`${'='.repeat(60)}\n`);
+                btn.disabled = false;
                 
                 alert("✅ Sincronización Completa\n\nRevisa la consola (F12) para ver detalles de la exploración");
                 statusArea.classList.add('hidden');
