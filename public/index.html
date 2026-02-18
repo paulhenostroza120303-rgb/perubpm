@@ -1954,6 +1954,7 @@ if (data.remixes) {
         function stopCurrentAudio() {
             if (currentAudio) {
                 currentAudio.pause();
+                currentAudio.src = '';
                 currentAudio = null;
             }
             if (currentProgressInterval) {
@@ -1978,9 +1979,7 @@ if (data.remixes) {
         }
         
         async function playAudio(refId, fileName, btn) {
-            const progressEl = document.getElementById('progress-' + refId);
-            
-            // Si el mismo audio ya está reproduciendo, pausar
+            // Si el mismo audio está sonando, toggle pause/play
             if (currentAudio && currentRefId === refId) {
                 if (currentAudio.paused) {
                     currentAudio.play();
@@ -1992,10 +1991,12 @@ if (data.remixes) {
                 return;
             }
             
-            // Detener cualquier audio anterior
+            // Nuevo audio - detener el anterior completamente
             stopCurrentAudio();
             
+            const progressEl = document.getElementById('progress-' + refId);
             const realFileName = decodeURIComponent(fileName);
+            
             btn.innerText = '⏳';
             currentBtn = btn;
             
@@ -2011,20 +2012,19 @@ if (data.remixes) {
                 currentAudio = new Audio(previewUrl);
                 currentRefId = refId;
                 
-                // Evento cuando carga suficiente para reproducir
                 currentAudio.oncanplay = function() {
                     btn.innerText = '⏸';
-                    currentAudio.play().catch(e => {
+                    currentAudio.play().catch(function(e) {
                         console.error('Play error:', e);
                         btn.innerText = '▶';
                     });
                 };
-                
+
                 // Actualizar progreso cada 100ms
                 currentProgressInterval = setInterval(function() {
                     if (currentAudio && progressEl && currentRefId === refId) {
-                        const current = Math.min(currentAudio.currentTime, 60);
-                        const percent = (current / 60) * 100;
+                        var current = Math.min(currentAudio.currentTime, 60);
+                        var percent = (current / 60) * 100;
                         progressEl.querySelector('.progress-fill').style.width = percent + '%';
                         progressEl.querySelector('.progress-time').innerText = formatTime(current) + ' / 1:00';
                     }

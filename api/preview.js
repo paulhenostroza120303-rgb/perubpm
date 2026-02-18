@@ -29,8 +29,8 @@ export default async function handler(req, res) {
     res.setHeader("Accept-Ranges", "bytes");
     res.setHeader("Cache-Control", "public, max-age=3600");
 
-    // Limitar a 60 segundos = ~1MB a 128kbps
-    const MAX_BYTES = 1000000;
+    // Limitar a 60 segundos = ~2MB para asegurar (128kbps = 16KB/s * 60s = 960KB)
+    const MAX_BYTES = 2000000;
     let bytesSent = 0;
     const stream = response.body;
     
