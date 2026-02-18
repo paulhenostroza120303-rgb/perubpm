@@ -899,6 +899,8 @@ let currentPackName = "perubpm_pack";
             // Actualizar URL con History API
             const newUrl = window.location.origin + '/#' + section;
             window.history.pushState({ section: section }, '', newUrl);
+            // Forzar actualización del hash
+            window.location.hash = section;
             
             if (section === 'drive_privado') {
                 renderDrivePrivado();
@@ -2144,6 +2146,20 @@ if (data.remixes) {
                 URL.revokeObjectURL(url);
             });
         }
+
+        // ============================================
+        // LISTENER PARA BOTÓN ATRÁS DEL NAVEGADOR
+        // ============================================
+        
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.section) {
+                // El usuario presionó el botón atrás del navegador
+                changeSection(event.state.section);
+            } else if (!event.state) {
+                // No hay estado, volver a la sección principal
+                changeSection('packs');
+            }
+        });
 
         // ============================================
         // LISTENER PARA BOTÓN ATRÁS DEL NAVEGADOR
