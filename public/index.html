@@ -929,16 +929,109 @@ const firebaseConfig = {
         
         function handleDriveSearch() {
             const input = document.getElementById('driveSearchInput');
-            const searchTerm = input.value.toLowerCase().trim();
-            const container = document.getElementById('driveListContainer');
+            const searchTerm = input.value.trim();
             
-            if (!container) return;
+            if (searchTerm.length < 2) {
+                if (searchTerm === '') {
+                    loadDrivePrivado();
+                }
+                return;
+            }
             
-            const rows = container.querySelectorAll('[data-file-row]');
-            rows.forEach(row => {
-                const fileName = row.getAttribute('data-filename') || '';
-                row.style.display = fileName.includes(searchTerm) ? '' : 'none';
-            });
+            searchDriveGlobal(searchTerm);
+        }
+        
+        async function searchDriveGlobal(query) {
+            const container = document.getElementById('view-gallery');
+            container.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">BUSCANDO...</div>';
+            
+            try {
+                const response = await fetch(`/api/drive-list?search=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderSearchResults(data.files, query);
+                } else {
+                    container.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">ERROR EN BÚSQUEDA</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">ERROR DE CONEXIÓN</div>';
+            }
+        }
+        
+        function renderSearchResults(files, query) {
+            const container = document.getElementById('view-gallery');
+            container.innerHTML = '';
+            container.style.display = 'block';
+            
+            const searchDiv = document.createElement('div');
+            searchDiv.style.cssText = 'margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;';
+            searchDiv.innerHTML = `
+                <input type="text" id="driveSearchInput" onkeyup="handleDriveSearch()" value="${query}"
+                    placeholder="BUSCAR EN TODO EL DRIVE..." 
+                    style="background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 0.75rem 1rem; border-radius: 0.75rem; color: #f1f5f9; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; outline: none;">
+            `;
+            container.appendChild(searchDiv);
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.style.cssText = 'padding: 0.5rem 1rem; color: #64748b; font-size: 10px;';
+            infoDiv.innerHTML = `${files.length} RESULTADOS PARA "${query}"`;
+            container.appendChild(infoDiv);
+            
+            const listContainer = document.createElement('div');
+            listContainer.id = 'driveListContainer';
+            listContainer.style.cssText = 'background: rgba(15,23,42,0.8); border-radius: 1.5rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); max-height: 70vh; overflow-y: auto;';
+            
+            const header = document.createElement('div');
+            header.style.cssText = 'display: grid; grid-template-columns: 50px 1fr 120px; padding: 1rem 1.5rem; background: rgba(30,41,59,0.5); border-bottom: 1px solid rgba(255,255,255,0.05);';
+            header.innerHTML = `
+                <span class="text-[9px] font-black uppercase text-slate-500">TIPO</span>
+                <span class="text-[9px] font-black uppercase text-slate-500">NOMBRE</span>
+                <span class="text-[9px] font-black uppercase text-slate-500 text-right">ACCIÓN</span>
+            `;
+            listContainer.appendChild(header);
+            
+            if (files.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.style.cssText = 'padding: 2rem; text-align: center; color: #64748b; font-size: 11px;';
+                noResults.innerHTML = 'NO SE ENCONTRARON ARCHIVOS';
+                listContainer.appendChild(noResults);
+            } else {
+                files.forEach(file => {
+                    const isFolder = file.type === 'folder';
+                    const size = file.size ? formatFileSize(file.size) : '';
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    const icon = getFileIcon(ext, isFolder);
+                    
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display: grid; grid-template-columns: 50px 1fr 120px; padding: 0.75rem 1.5rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.2s;';
+                    row.onmouseover = () => row.style.background = 'rgba(30,41,59,0.5)';
+                    row.onmouseout = () => row.style.background = 'transparent';
+                    row.innerHTML = `
+                        <div style="font-size: 24px;">${icon}</div>
+                        <div style="min-width: 0;">
+                            <div class="text-[11px] font-bold uppercase truncate" style="color: #f1f5f9;">${file.name}</div>
+                            <div class="text-[8px] text-slate-500">${isFolder ? 'Carpeta' : size}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] font-black uppercase" style="color: #3b82f6; background: rgba(59,130,246,0.1); padding: 6px 12px; border-radius: 8px;">
+                                ${isFolder ? 'ABRIR' : 'DESCARGAR'}
+                            </span>
+                        </div>
+                    `;
+                    
+                    if (isFolder) {
+                        row.onclick = () => openDriveFolder(file.id);
+                    } else {
+                        row.onclick = () => downloadDriveFile(file.id, file.name);
+                    }
+                    
+                    listContainer.appendChild(row);
+                });
+            }
+            
+            container.appendChild(listContainer);
         }
         
         function renderDrivePrivado() {

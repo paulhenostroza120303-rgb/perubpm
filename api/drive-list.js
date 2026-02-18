@@ -31,13 +31,20 @@ export default async function handler(req, res) {
 
     const drive = google.drive({ version: 'v3', auth });
 
-    const { folderId } = req.query;
+    const { folderId, search } = req.query;
     const targetFolderId = folderId || FOLDER_ID;
     
+    let query;
+    if (search) {
+      query = `name contains '${search}' and trashed = false and '${FOLDER_ID}' in parents`;
+    } else {
+      query = `'${targetFolderId}' in parents and trashed = false`;
+    }
+    
     const response = await drive.files.list({
-      q: `'${targetFolderId}' in parents and trashed = false`,
+      q: query,
       fields: 'files(id, name, mimeType, size, modifiedTime)',
-      orderBy: 'name asc',
+      orderBy: search ? 'modifiedTime desc' : 'name asc',
       pageSize: 100
     });
 
