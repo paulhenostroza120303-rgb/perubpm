@@ -365,27 +365,21 @@ Mobile UI
     </div>
 
     <script>
-        // Obfuscar strings importantes - Versión mejorada
-        var _0x2a=['aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9mb2xkZXIv','aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9zbHVnLw=='];(function(_0x4dx2e,_0x2a3b){var _0x3e2c=function(_0x5d4e){while(--_0x5d4e){_0x4dx2e['push'](_0x4dx2e['shift']());}};_0x3e2c(++_0x2a3b);}(_0x2a,0x80));var _0x3e2c=function(_0x4dx2e,_0x2a3b){_0x4dx2e=_0x4dx2e-0x0;var _0x5d4e=_0x2a[_0x4dx2e];return _0x5d4e;};function _0x5d4e(_0x3e2c){var _0x4dx2e=atob(_0x3e2c);return _0x4dx2e;}
-        var API_FOLDER=_0x5d4e(_0x2a[0]);var API_SLUG=_0x5d4e(_0x2a[1]);
+        // Obfuscar strings importantes
+        var _0x4a=['aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9mb2xkZXIv','aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9zbHVnLw==','cGVydWJwbS05NjM3Ny5maXJlYmFzZWFwcC5jb20=','aHR0cHM6Ly9wZXJ1YnBtLTk2Mzc3LWRlZmF1bHQtcnRkYi5maXJlYmFzZWlby5jb20=','cGVydWJwbS05NjM3Nw=='];
+        (function(_0x2b3c,_0x1a2d){var _0x3d4e=function(_0x5f6a){while(--_0x5f6a){_0x2b3c['push'](_0x2b3c['shift']());}};_0x3d4e(++_0x1a2d);}(_0x4a,0xc0));var _0x3d4e=function(_0x2b3c,_0x1a2d){_0x2b3c=_0x2b3c-0x0;var _0x5f6a=_0x4a[_0x2b3c];return _0x5f6a;};function _0x5f6a(_0x3d4e){var _0x2b3c=atob(_0x3d4e);return _0x2b3c;}
+        var API_FOLDER=_0x5f6a(_0x4a[0]);var API_SLUG=_0x5f6a(_0x4a[1]);var FB_AUTH=_0x5f6a(_0x4a[2]);var FB_DB=_0x5f6a(_0x4a[3]);var FB_PROJ=_0x5f6a(_0x4a[4]);
         
-        // Desactivar logs en producción - Versión mejorada
+        // Desactivar logs en producción
         if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
             console.log = function() {};
             console.error = function() {};
             console.warn = function() {};
             console.info = function() {};
             console.debug = function() {};
-            // Ocultar también el objeto console por completo
-            try {
-                delete console.log;
-                delete console.error;
-                delete console.warn;
-                delete console.info;
-                delete console.debug;
-            } catch(e) {}
         }
-        
+        }
+         
         // ===============================
 // VARIABLES GLOBALES DEL PACK
 // ===============================
@@ -396,9 +390,9 @@ let currentPackName = "perubpm_pack";
 // ============================================
 const firebaseConfig = {
     apiKey: "AIzaSyCgAWYxDqUYm0vzhi9e7AqbCJ96jeD_gfg",
-    authDomain: _0x5d4e("cGVydWJwbS05NjM3Ny5maXJlYmFzZWFwcC5jb20="),
-    databaseURL: _0x5d4e("aHR0cHM6Ly9wZXJ1YnBtLTk2Mzc3LWRlZmF1bHQtcnRkYi5maXJlYmFzZWlby5jb20="),
-    projectId: _0x5d4e("cGVydWJwbS05NjM3Nw==")
+    authDomain: FB_AUTH,
+    databaseURL: FB_DB,
+    projectId: FB_PROJ
 };
 
         firebase.initializeApp(firebaseConfig);
