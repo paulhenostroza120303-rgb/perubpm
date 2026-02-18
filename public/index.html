@@ -2419,34 +2419,19 @@ if (data.remixes) {
             handleNavigation();
         });
 
-        // Esperar a que los datos estén disponibles antes de navegar
+        // Iniciar navegación - solo una vez cuando los datos estén listos
+        var navigationInitialized = false;
+        
         function initNavigation() {
-            // Verificar si los datos ya están cargados
-            if (globalData.packs && globalData.packs.length > 0) {
-                handleNavigation();
-            } else {
-                console.log('⏳ Esperando carga de datos...');
-                // Reintentar cada 500ms hasta que los datos estén disponibles
-                var checkInterval = setInterval(function() {
-                    if (globalData.packs && globalData.packs.length > 0) {
-                        clearInterval(checkInterval);
-                        console.log('✅ Datos cargados, iniciando navegación...');
-                        handleNavigation();
-                    }
-                }, 500);
-                
-                // Timeout máximo de 10 segundos
-                setTimeout(function() {
-                    clearInterval(checkInterval);
-                    handleNavigation();
-                }, 10000);
-            }
+            if (navigationInitialized) return;
+            navigationInitialized = true;
+            handleNavigation();
         }
 
-        // Iniciar navegación después de que Firebase esté listo
-        window.addEventListener('load', function() {
-            setTimeout(initNavigation, 1000);
-        });
+        // Esperar a que los datos estén disponibles o iniciar después de 3 segundos
+        setTimeout(function() {
+            initNavigation();
+        }, 3000);
 
     </script>
 </body>
