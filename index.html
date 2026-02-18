@@ -365,10 +365,13 @@ Mobile UI
     </div>
 
     <script>
-        // Obfuscar strings importantes
-        var _0x4a=['aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9mb2xkZXIv','aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9zbHVnLw==','cGVydWJwbS05NjM3Ny5maXJlYmFzZWFwcC5jb20=','aHR0cHM6Ly9wZXJ1YnBtLTk2Mzc3LWRlZmF1bHQtcnRkYi5maXJlYmFzZWlby5jb20=','cGVydWJwbS05NjM3Nw=='];
-        (function(_0x2b3c,_0x1a2d){var _0x3d4e=function(_0x5f6a){while(--_0x5f6a){_0x2b3c['push'](_0x2b3c['shift']());}};_0x3d4e(++_0x1a2d);}(_0x4a,0xc0));var _0x3d4e=function(_0x2b3c,_0x1a2d){_0x2b3c=_0x2b3c-0x0;var _0x5f6a=_0x4a[_0x2b3c];return _0x5f6a;};function _0x5f6a(_0x3d4e){var _0x2b3c=atob(_0x3d4e);return _0x2b3c;}
-        var API_FOLDER=_0x5f6a(_0x4a[0]);var API_SLUG=_0x5f6a(_0x4a[1]);var FB_AUTH=_0x5f6a(_0x4a[2]);var FB_DB=_0x5f6a(_0x4a[3]);var FB_PROJ=_0x5f6a(_0x4a[4]);
+        // Obfuscar strings importantes - método simple
+        var _0x7f2=function(_0x3a1){return atob(_0x3a1);};
+        var API_FOLDER=_0x7f2('aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9mb2xkZXIv');
+        var API_SLUG=_0x7f2('aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9zbHVnLw==');
+        var FB_AUTH=_0x7f2('cGVydWJwbS05NjM3Ny5maXJlYmFzZWFwcC5jb20=');
+        var FB_DB=_0x7f2('aHR0cHM6Ly9wZXJ1YnBtLTk2Mzc3LWRlZmF1bHQtcnRkYi5maXJlYmFzZWlby5jb20=');
+        var FB_PROJ=_0x7f2('cGVydWJwbS05NjM3Nw==');
         
         // Desactivar logs en producción
         if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
