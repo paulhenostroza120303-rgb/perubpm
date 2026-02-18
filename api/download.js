@@ -4,10 +4,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { token, ref, name } = req.query;
+  const { token, ref, name, preview } = req.query;
 
   if (!token || !ref || !name) {
     return res.redirect('/?error=parametros');
+  }
+
+  // Si es preview, devolver la URL directa en JSON
+  if (preview === 'true') {
+    const downloadUrl = `https://api.perubpm.com/catalog/drive/download/${ref}?fileName=${encodeURIComponent(name)}`;
+    return res.json({ url: downloadUrl });
   }
 
   try {

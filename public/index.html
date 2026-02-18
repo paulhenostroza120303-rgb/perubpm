@@ -1918,47 +1918,71 @@ if (data.remixes) {
 
         let currentAudio = null;
         
-        function playAudio(refId, fileName, btn) {
+        async function playAudio(refId, fileName, btn) {
             // Si ya hay un audio reproduciéndose, detenerlo
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
-                // Restaurar todos los botones
                 document.querySelectorAll('.play-btn').forEach(b => b.innerText = '▶');
             }
             
-            // Obtener el nombre real sin encode
             const realFileName = decodeURIComponent(fileName);
             
-            // Crear audio
-            const audioUrl = `/api/audio?ref=${refId}&name=${realFileName}`;
-            currentAudio = new Audio(audioUrl);
+            // Primero obtener la URL de descarga
+            btn.innerText = '⏳';
             
-            // Cambiar el botón a "⏸"
-            btn.innerText = '⏸';
-            
-            currentAudio.play().then(() => {
-                console.log('Reproduciendo:', audioUrl);
-            }).catch(err => {
-                console.error('Error al reproducir:', err);
-                alert('Error al reproducir audio');
-                btn.innerText = '▶';
-                currentAudio = null;
-            });
-            
-            // Cuando termine, restaurar botón
-            currentAudio.onended = function() {
-                btn.innerText = '▶';
-                currentAudio = null;
-            };
-            
-            // Si se da clic en otro play, este se detiene
-            currentAudio.onplay = function() {
-                document.querySelectorAll('.play-btn').forEach(b => {
-                    if (b !== btn) b.innerText = '▶';
-                });
+            try {
+                // Usar el mismo sistema de descarga con preview=true
+                const token = "perubpm_preview_" + Date.now();
+                const downloadUrl = `/api/download?token=${token}&ref=${refId}&name=${encodeURIComponent(realFileName)}&preview=true`;
+                
+                // Fetch de la URL real
+                const response = await fetch(downloadUrl);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // La API devuelve { url: "..." }
+                let audioUrl = data.url;
+                
+                if (!audioUrl) {
+                    throw new Error('No se pudo obtener la URL del audio');
+                }
+                
+                // Crear audio con la URL directa
+                currentAudio = new Audio(audioUrl);
+                
                 btn.innerText = '⏸';
-            };
+                
+                currentAudio.play().then(() => {
+                    console.log('Reproduciendo:', audioUrl);
+                }).catch(err => {
+                    console.error('Error al reproducir:', err);
+                    alert('Error al reproducir audio');
+                    btn.innerText = '▶';
+                    currentAudio = null;
+                });
+                
+                currentAudio.onended = function() {
+                    btn.innerText = '▶';
+                    currentAudio = null;
+                };
+                
+                currentAudio.onplay = function() {
+                    document.querySelectorAll('.play-btn').forEach(b => {
+                        if (b !== btn) b.innerText = '▶';
+                    });
+                    btn.innerText = '⏸';
+                };
+                
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Error al obtener audio: ' + err.message);
+                btn.innerText = '▶';
+                currentAudio = null;
+            }
         }
 
         async function downloadWithToken(refId, fileName, btn) {
