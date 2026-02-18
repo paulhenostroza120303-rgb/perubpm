@@ -1723,11 +1723,20 @@ if (data.remixes) {
         }
         
         row.innerHTML = `
-            <div class="w-full text-left">
-                <h5 class="text-[11px] font-black uppercase mb-1">${f.name}</h5>
-                <span class="text-[8px] text-slate-500 font-black uppercase">
-                    ${(f.metadata?.size / 1048576).toFixed(2)} MB
-                </span>
+            <div class="flex items-center gap-3 w-full text-left">
+                <button onclick="playAudio('${refId}', '${fileName}', this)" class="play-btn bg-blue-600/20 text-blue-400 px-3 py-2 rounded-lg text-xs font-black uppercase hover:bg-blue-600 hover:text-white transition-all">▶</button>
+                <div class="flex-1">
+                    <h5 class="text-[11px] font-black uppercase mb-1">${f.name}</h5>
+                    <span class="text-[8px] text-slate-500 font-black uppercase">
+                        ${(f.metadata?.size / 1048576).toFixed(2)} MB
+                    </span>
+                    <div class="player-progress hidden" id="progress-${refId}" style="margin-top: 4px;">
+                        <div class="progress-bar" style="height: 3px; background: #334155; border-radius: 2px; overflow: hidden;">
+                            <div class="progress-fill" style="height: 100%; background: #3b82f6; width: 0%; transition: width 0.5s;"></div>
+                        </div>
+                        <div class="progress-time text-[6px] text-slate-500 mt-1">0:00 / 1:00</div>
+                    </div>
+                </div>
             </div>
             ${actionButton}
         `;
