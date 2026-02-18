@@ -927,18 +927,24 @@ const firebaseConfig = {
             }
         }
         
+        let driveSearchTimeout;
+        
         function handleDriveSearch() {
             const input = document.getElementById('driveSearchInput');
             const searchTerm = input.value.trim();
             
             if (searchTerm.length < 2) {
                 if (searchTerm === '') {
+                    clearTimeout(driveSearchTimeout);
                     loadDrivePrivado();
                 }
                 return;
             }
             
-            searchDriveGlobal(searchTerm);
+            clearTimeout(driveSearchTimeout);
+            driveSearchTimeout = setTimeout(() => {
+                searchDriveGlobal(searchTerm);
+            }, 500);
         }
         
         async function searchDriveGlobal(query) {
