@@ -13,6 +13,19 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "Extension not allowed" });
   }
 
+  // Calcular tamaño basado en formato
+  // MP3: 3MB (aprox 3 min a 128kbps)
+  // WAV: 3MB (aprox 30 seg a 800kbps)
+  // Otros: 2MB
+  let MAX_BYTES;
+  if (ext === 'mp3') {
+    MAX_BYTES = 3000000;
+  } else if (ext === 'wav') {
+    MAX_BYTES = 3000000;
+  } else {
+    MAX_BYTES = 2000000;
+  }
+
   const apiUrl = `https://api.perubpm.com/catalog/drive/download/${ref}?fileName=${encodeURIComponent(name)}`;
 
   try {
@@ -29,8 +42,6 @@ export default async function handler(req, res) {
     res.setHeader("Accept-Ranges", "bytes");
     res.setHeader("Cache-Control", "public, max-age=3600");
 
-    // Limitar a 60 segundos = ~2MB para asegurar (128kbps = 16KB/s * 60s = 960KB)
-    const MAX_BYTES = 2000000;
     let bytesSent = 0;
     const stream = response.body;
     
