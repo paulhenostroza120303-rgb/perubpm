@@ -366,7 +366,7 @@ Mobile UI
 
     <script>
         // Obfuscar strings importantes - Versión mejorada
-        var _0x2a=['aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9mb2xkZXIv','aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9zbHVnLw=='];
+        var _0x2a=['aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9mb2xkZXIv','aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9zbHVnLw==','cGVydWJwbS05NjM3Ny5maXJlYmFzZWFwcC5jb20=','aHR0cHM6Ly9wZXJ1YnBtLTk2Mzc3LWRlZmF1bHQtcnRkYi5maXJlYmFzZWlvy5jb20=','cGVydWJwbS05NjM3Nw=='];
         (function(_0x4dx2e,_0x2a3b){
             var _0x3e2c=function(_0x5d4e){
                 while(--_0x5d4e){
@@ -389,6 +389,9 @@ Mobile UI
         
         var API_FOLDER=_0x5d4e(_0x2a[0]);
         var API_SLUG=_0x5d4e(_0x2a[1]);
+        var AUTH_DOMAIN=_0x5d4e(_0x2a[2]);
+        var DATABASE_URL=_0x5d4e(_0x2a[3]);
+        var PROJECT_ID=_0x5d4e(_0x2a[4]);
         
         // Desactivar logs en producción - Versión mejorada
         if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
@@ -417,9 +420,9 @@ let currentPackName = "perubpm-pack";
         // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyCgAWYxDqUYm0vzhi9e7AqbCJ96jeD_gfg",
-            authDomain: _0x5d4e("cGVydWJwbS05NjM3Ny5maXJlYmFzZWFwcC5jb20="),
-            databaseURL: _0x5d4e("aHR0cHM6Ly9wZXJ1YnBtLTk2Mzc3LWRlZmF1bHQtcnRkYi5maXJlYmFzZWlby5jb20="),
-            projectId: _0x5d4e("cGVydWJwbS05NjM3Nw==")
+            authDomain: AUTH_DOMAIN,
+            databaseURL: DATABASE_URL,
+            projectId: PROJECT_ID
         };
 
         firebase.initializeApp(firebaseConfig);
