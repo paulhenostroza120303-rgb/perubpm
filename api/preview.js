@@ -15,13 +15,13 @@ export default async function handler(req, res) {
 
   // Calcular tamaño basado en formato
   // MP3: 3MB (aprox 3 min a 128kbps)
-  // WAV: 3MB (aprox 30 seg a 800kbps)
+  // WAV: 10MB (aprox 50-60 seg a 1.4Mbps)
   // Otros: 2MB
   let MAX_BYTES;
   if (ext === 'mp3') {
     MAX_BYTES = 3000000;
   } else if (ext === 'wav') {
-    MAX_BYTES = 3000000;
+    MAX_BYTES = 10000000;
   } else {
     MAX_BYTES = 2000000;
   }
