@@ -244,13 +244,13 @@ Mobile UI
         </header>
 
         <nav id="sectionNav" class="flex gap-3 mb-10 overflow-x-auto pb-4 no-scrollbar">
-            <div onclick="changeSection('packs')" id="tab-packs" class="nav-tab active">Packs VIP</div>
-            <div onclick="changeSection('membresias')" id="tab-membresias" class="nav-tab">Membresías Perú</div>
-            <div onclick="changeSection('membresias_extranjeras')" id="tab-membresias_extranjeras" class="nav-tab">Membresías Extranjeras</div>
-            <div onclick="changeSection('video_remixes_latinos')" id="tab-video_remixes_latinos" class="nav-tab">Video Remixes Latinos</div>
-            <div onclick="changeSection('backups')" id="tab-backups" class="nav-tab">Backups 2026</div>
-            <div onclick="changeSection('editores_peruanos')" id="tab-editores_peruanos" class="nav-tab">Editores Peruanos</div>
-            <div onclick="changeSection('drive_privado')" id="tab-drive_privado" class="nav-tab admin-only">Drive Privado</div>
+            <div onclick="navigateTo('packs')" id="tab-packs" class="nav-tab active">Packs VIP</div>
+            <div onclick="navigateTo('membresias')" id="tab-membresias" class="nav-tab">Membresías Perú</div>
+            <div onclick="navigateTo('membresias_extranjeras')" id="tab-membresias_extranjeras" class="nav-tab">Membresías Extranjeras</div>
+            <div onclick="navigateTo('video_remixes_latinos')" id="tab-video_remixes_latinos" class="nav-tab">Video Remixes Latinos</div>
+            <div onclick="navigateTo('backups')" id="tab-backups" class="nav-tab">Backups 2026</div>
+            <div onclick="navigateTo('editores_peruanos')" id="tab-editores_peruanos" class="nav-tab">Editores Peruanos</div>
+            <div onclick="navigateTo('drive_privado')" id="tab-drive_privado" class="nav-tab admin-only">Drive Privado</div>
         </nav>
 
         <div id="musicSearchResults" class="hidden mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -897,9 +897,9 @@ let currentPackName = "perubpm_pack";
             const gallery = document.getElementById('view-gallery');
             gallery.style.display = '';
             
-            // Actualizar URL según el parámetro
+            // Actualizar URL
             if (updateHash && !isHashNavigation) {
-                window.location.hash = section;
+                history.replaceState({ section: section }, '', '/' + section);
             }
             isHashNavigation = false;
             
@@ -1646,12 +1646,12 @@ let currentPackName = "perubpm_pack";
             if (navHistory.length === 0) {
                 currentPackIsFree = false;
                 toggleView('gallery'); 
-                window.location.hash = currentSection;
+                history.replaceState({ section: currentSection }, '', '/' + currentSection);
             } else {
                 const prevData = navHistory[navHistory.length - 1];
                 currentPackIsFree = currentPackIsFree || prevData.isFree;
                 renderFolder(prevData); 
-                window.location.hash = `${currentSection}/${encodeURIComponent(prevData.name)}`;
+                history.pushState({ section: currentSection, subfolder: prevData.name }, '', `/${currentSection}/${encodeURIComponent(prevData.name)}`);
             }
         }
         
@@ -1662,7 +1662,7 @@ let currentPackName = "perubpm_pack";
             navHistory.push(data);
             renderFolder(data);
             if (updateHash) {
-                window.location.hash = `${currentSection}/${encodeURIComponent(data.name)}`;
+                history.pushState({ section: currentSection, subfolder: data.name }, '', `/${currentSection}/${encodeURIComponent(data.name)}`);
             }
         }
         
@@ -2150,45 +2150,55 @@ if (data.remixes) {
         }
 
         // ============================================
-        // NAVEGACIÓN CON HASH (#seccion/subcarpeta)
+        // NAVEGACIÓN CON HISTORY API (/packs, /membresias, etc)
         // ============================================
 
         const validSections = ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos', 'drive_privado'];
 
-        function handleHashNavigation() {
-            var hash = window.location.hash.slice(1);
-            if (!hash) {
-                changeSection('packs', false);
-                return;
-            }
+        function getPathFromUrl() {
+            var path = window.location.pathname;
+            if (path === '/' || path === '') return '/packs';
+            return path;
+        }
 
-            var parts = hash.split('/');
+        function handleNavigation() {
+            var path = getPathFromUrl();
+            var cleanPath = path.replace(/^\//, '');
+            var parts = cleanPath.split('/');
             var section = parts[0];
             var subfolder = parts[1];
 
-            if (validSections.indexOf(section) !== -1) {
-                isHashNavigation = true;
-                changeSection(section, false);
-                if (subfolder && globalData[section]) {
-                    var pack = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
-                    if (pack) {
-                        openFolder(pack, pack.isFree || false, false);
-                    }
+            if (validSections.indexOf(section) === -1) {
+                section = 'packs';
+            }
+
+            isHashNavigation = true;
+            changeSection(section, false);
+
+            if (subfolder && globalData[section]) {
+                var pack = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
+                if (pack) {
+                    openFolder(pack, pack.isFree || false, false);
                 }
             }
         }
 
-        window.addEventListener('hashchange', handleHashNavigation);
-        window.addEventListener('popstate', function(event) {
-            handleHashNavigation();
-        });
-        
-        // Ejecutar inmediatamente al cargar script
-        (function() {
-            handleHashNavigation();
-        })();
+        function navigateTo(section, subfolder) {
+            var path = '/' + section;
+            if (subfolder) {
+                path += '/' + encodeURIComponent(subfolder);
+            }
+            history.pushState({ section: section, subfolder: subfolder }, '', path);
+            handleNavigation();
+        }
 
-        window.addEventListener('load', handleHashNavigation);
+        // Listener para botón atrás del navegador
+        window.addEventListener('popstate', function(event) {
+            handleNavigation();
+        });
+
+        // Navigation inicial
+        handleNavigation();
 
     </script>
 </body>
