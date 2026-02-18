@@ -1928,36 +1928,20 @@ if (data.remixes) {
             
             const realFileName = decodeURIComponent(fileName);
             
-            // Primero obtener la URL de descarga
+            // Primero obtener la URL de preview (solo 1 minuto)
             btn.innerText = '⏳';
             
             try {
-                // Usar el mismo sistema de descarga con preview=true
-                const token = "perubpm_preview_" + Date.now();
-                const downloadUrl = `/api/download?token=${token}&ref=${refId}&name=${encodeURIComponent(realFileName)}&preview=true`;
+                // Usar la API de preview (1 minuto máximo)
+                const previewUrl = `/api/preview?ref=${refId}&name=${encodeURIComponent(realFileName)}`;
                 
-                // Fetch de la URL real
-                const response = await fetch(downloadUrl);
-                const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                // La API devuelve { url: "..." }
-                let audioUrl = data.url;
-                
-                if (!audioUrl) {
-                    throw new Error('No se pudo obtener la URL del audio');
-                }
-                
-                // Crear audio con la URL directa
-                currentAudio = new Audio(audioUrl);
+                // Crear audio con la URL de preview
+                currentAudio = new Audio(previewUrl);
                 
                 btn.innerText = '⏸';
                 
                 currentAudio.play().then(() => {
-                    console.log('Reproduciendo:', audioUrl);
+                    console.log('Reproduciendo preview (1 minuto)');
                 }).catch(err => {
                     console.error('Error al reproducir:', err);
                     alert('Error al reproducir audio');
@@ -1968,6 +1952,11 @@ if (data.remixes) {
                 currentAudio.onended = function() {
                     btn.innerText = '▶';
                     currentAudio = null;
+                };
+                
+                // Also handle pause
+                currentAudio.onpause = function() {
+                    btn.innerText = '▶';
                 };
                 
                 currentAudio.onplay = function() {
