@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     
     let query;
     if (search) {
-      query = `name contains '${search}' and trashed = false and '${FOLDER_ID}' in parents`;
+      query = `name contains '${search}' and trashed = false`;
     } else {
       query = `'${targetFolderId}' in parents and trashed = false`;
     }
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       q: query,
       fields: 'files(id, name, mimeType, size, modifiedTime)',
       orderBy: search ? 'modifiedTime desc' : 'name asc',
-      pageSize: 100
+      pageSize: 1000
     });
 
     const files = response.data.files.map(file => ({
