@@ -1382,10 +1382,13 @@ const firebaseConfig = {
                     
                     return `
                     <div class="item-row p-4 rounded-xl flex justify-between items-center gap-4">
-                        <div class="truncate">
-                            <span class="search-hit-badge${m.isFree ? ' free' : ''}">${m.section}${m.isFree ? ' 🆓' : ''}</span>
-                            <h5 class="text-[10px] font-black uppercase truncate">${m.name}</h5>
-                            <p class="text-[7px] text-slate-500 font-bold uppercase truncate">${m.packName}</p>
+                        <div class="flex items-center gap-3">
+                            <button onclick="playAudio('${refId}', '${fileName}', this)" class="play-btn bg-blue-600/20 text-blue-400 px-3 py-2 rounded-lg text-xs font-black uppercase hover:bg-blue-600 hover:text-white transition-all">▶</button>
+                            <div class="truncate">
+                                <span class="search-hit-badge${m.isFree ? ' free' : ''}">${m.section}${m.isFree ? ' 🆓' : ''}</span>
+                                <h5 class="text-[10px] font-black uppercase truncate">${m.name}</h5>
+                                <p class="text-[7px] text-slate-500 font-bold uppercase truncate">${m.packName}</p>
+                            </div>
                         </div>
                         ${actionBtn}
                     </div>
@@ -1911,6 +1914,51 @@ if (data.remixes) {
             document.getElementById('emailModal').classList.add('hidden');
             pendingDownloadUrl = '';
             pendingDownloadName = '';
+        }
+
+        let currentAudio = null;
+        
+        function playAudio(refId, fileName, btn) {
+            // Si ya hay un audio reproduciéndose, detenerlo
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+                // Restaurar todos los botones
+                document.querySelectorAll('.play-btn').forEach(b => b.innerText = '▶');
+            }
+            
+            // Obtener el nombre real sin encode
+            const realFileName = decodeURIComponent(fileName);
+            
+            // Crear audio
+            const audioUrl = `/api/audio?ref=${refId}&name=${realFileName}`;
+            currentAudio = new Audio(audioUrl);
+            
+            // Cambiar el botón a "⏸"
+            btn.innerText = '⏸';
+            
+            currentAudio.play().then(() => {
+                console.log('Reproduciendo:', audioUrl);
+            }).catch(err => {
+                console.error('Error al reproducir:', err);
+                alert('Error al reproducir audio');
+                btn.innerText = '▶';
+                currentAudio = null;
+            });
+            
+            // Cuando termine, restaurar botón
+            currentAudio.onended = function() {
+                btn.innerText = '▶';
+                currentAudio = null;
+            };
+            
+            // Si se da clic en otro play, este se detiene
+            currentAudio.onplay = function() {
+                document.querySelectorAll('.play-btn').forEach(b => {
+                    if (b !== btn) b.innerText = '▶';
+                });
+                btn.innerText = '⏸';
+            };
         }
 
         async function downloadWithToken(refId, fileName, btn) {
