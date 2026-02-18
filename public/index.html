@@ -244,13 +244,13 @@ Mobile UI
         </header>
 
         <nav id="sectionNav" class="flex gap-3 mb-10 overflow-x-auto pb-4 no-scrollbar">
-            <div onclick="changeSection('packs')" id="tab-packs" class="nav-tab active">Packs VIP</div>
-            <div onclick="changeSection('membresias')" id="tab-membresias" class="nav-tab">Membresías Perú</div>
-            <div onclick="changeSection('membresias_extranjeras')" id="tab-membresias_extranjeras" class="nav-tab">Membresías Extranjeras</div>
-            <div onclick="changeSection('video_remixes_latinos')" id="tab-video_remixes_latinos" class="nav-tab">Video Remixes Latinos</div>
-            <div onclick="changeSection('backups')" id="tab-backups" class="nav-tab">Backups 2026</div>
-            <div onclick="changeSection('editores_peruanos')" id="tab-editores_peruanos" class="nav-tab">Editores Peruanos</div>
-            <div onclick="changeSection('drive_privado')" id="tab-drive_privado" class="nav-tab admin-only">Drive Privado</div>
+            <div onclick="navigateTo('packs')" id="tab-packs" class="nav-tab active">Packs VIP</div>
+            <div onclick="navigateTo('membresias')" id="tab-membresias" class="nav-tab">Membresías Perú</div>
+            <div onclick="navigateTo('membresias_extranjeras')" id="tab-membresias_extranjeras" class="nav-tab">Membresías Extranjeras</div>
+            <div onclick="navigateTo('video_remixes_latinos')" id="tab-video_remixes_latinos" class="nav-tab">Video Remixes Latinos</div>
+            <div onclick="navigateTo('backups')" id="tab-backups" class="nav-tab">Backups 2026</div>
+            <div onclick="navigateTo('editores_peruanos')" id="tab-editores_peruanos" class="nav-tab">Editores Peruanos</div>
+            <div onclick="navigateTo('drive_privado')" id="tab-drive_privado" class="nav-tab admin-only">Drive Privado</div>
         </nav>
 
         <div id="musicSearchResults" class="hidden mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -390,6 +390,7 @@ let currentPackName = "perubpm_pack";
         let currentUserEmail = "";
         let currentUserIsAdmin = false;
         let currentSection = "packs";
+        let isHashNavigation = false;
         
         // Sistema Gratuito
         let pendingDownloadUrl = "";
@@ -883,7 +884,7 @@ let currentPackName = "perubpm_pack";
             }
         }
 
-        function changeSection(section) {
+        function changeSection(section, updateHash = true) {
             currentSection = section;
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`tab-${section}`)?.classList.add('active');
@@ -895,6 +896,12 @@ let currentPackName = "perubpm_pack";
             // Reset gallery display for normal sections
             const gallery = document.getElementById('view-gallery');
             gallery.style.display = '';
+            
+            // Actualizar URL
+            if (updateHash && !isHashNavigation) {
+                history.replaceState({ section: section }, '', '/' + section);
+            }
+            isHashNavigation = false;
             
             if (section === 'drive_privado') {
                 renderDrivePrivado();
@@ -1639,19 +1646,24 @@ let currentPackName = "perubpm_pack";
             if (navHistory.length === 0) {
                 currentPackIsFree = false;
                 toggleView('gallery'); 
+                history.replaceState({ section: currentSection }, '', '/' + currentSection);
             } else {
                 const prevData = navHistory[navHistory.length - 1];
                 currentPackIsFree = currentPackIsFree || prevData.isFree;
                 renderFolder(prevData); 
+                history.pushState({ section: currentSection, subfolder: prevData.name }, '', `/${currentSection}/${encodeURIComponent(prevData.name)}`);
             }
         }
         
         let currentPackIsFree = false;
         
-        function openFolder(data, isFree = false) { 
+        function openFolder(data, isFree = false, updateHash = true) { 
             currentPackIsFree = isFree;
-            navHistory.push(data); 
-            renderFolder(data); 
+            navHistory.push(data);
+            renderFolder(data);
+            if (updateHash) {
+                history.pushState({ section: currentSection, subfolder: data.name }, '', `/${currentSection}/${encodeURIComponent(data.name)}`);
+            }
         }
         
         function renderFolder(data) {
@@ -2137,9 +2149,103 @@ if (data.remixes) {
             });
         }
 
+        // ============================================
+        // NAVEGACIÓN CON HISTORY API (/packs, /membresias, etc)
+        // ============================================
+
+        const validSections = ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos', 'drive_privado'];
+        let initialDataLoaded = false;
+
+        function getPathFromUrl() {
+            var path = window.location.pathname;
+            if (path === '/' || path === '') return '/packs';
+            return path;
+        }
+
+        function handleNavigation() {
+            var path = getPathFromUrl();
+            var cleanPath = path.replace(/^\//, '');
+            var parts = cleanPath.split('/');
+            var section = parts[0];
+            var subfolder = parts[1];
+
+            console.log('🧭 Navegando a:', section, subfolder);
+
+            if (validSections.indexOf(section) === -1) {
+                section = 'packs';
+            }
+
+            isHashNavigation = true;
+            changeSection(section, false);
+
+            // Solo intentar abrir subcarpeta si los datos ya están cargados
+            if (subfolder && globalData[section] && globalData[section].length > 0) {
+                var pack = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
+                if (pack) {
+                    console.log('📁 Abriendo carpeta:', pack.name);
+                    openFolder(pack, pack.isFree || false, false);
+                } else {
+                    console.log('⚠️ Pack no encontrado:', decodeURIComponent(subfolder));
+                }
+            } else if (subfolder) {
+                console.log('⏳ Esperando datos para abrir subcarpeta...');
+                // Reintentar después de un momento
+                setTimeout(function() {
+                    if (globalData[section] && globalData[section].length > 0) {
+                        var packRetry = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
+                        if (packRetry) {
+                            openFolder(packRetry, packRetry.isFree || false, false);
+                        }
+                    }
+                }, 2000);
+            }
+        }
+
+        function navigateTo(section, subfolder) {
+            var path = '/' + section;
+            if (subfolder) {
+                path += '/' + encodeURIComponent(subfolder);
+            }
+            history.pushState({ section: section, subfolder: subfolder }, '', path);
+            handleNavigation();
+        }
+
+        // Listener para botón atrás del navegador
+        window.addEventListener('popstate', function(event) {
+            handleNavigation();
+        });
+
+        // Esperar a que los datos estén disponibles antes de navegar
+        function initNavigation() {
+            // Verificar si los datos ya están cargados
+            if (globalData.packs && globalData.packs.length > 0) {
+                handleNavigation();
+            } else {
+                console.log('⏳ Esperando carga de datos...');
+                // Reintentar cada 500ms hasta que los datos estén disponibles
+                var checkInterval = setInterval(function() {
+                    if (globalData.packs && globalData.packs.length > 0) {
+                        clearInterval(checkInterval);
+                        console.log('✅ Datos cargados, iniciando navegación...');
+                        handleNavigation();
+                    }
+                }, 500);
+                
+                // Timeout máximo de 10 segundos
+                setTimeout(function() {
+                    clearInterval(checkInterval);
+                    handleNavigation();
+                }, 10000);
+            }
+        }
+
+        // Iniciar navegación después de que Firebase esté listo
+        window.addEventListener('load', function() {
+            setTimeout(initNavigation, 1000);
+        });
+
     </script>
 </body>
 </html>
-
 
 
