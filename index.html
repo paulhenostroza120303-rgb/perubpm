@@ -365,17 +365,25 @@ Mobile UI
     </div>
 
     <script>
-        // Obfuscar strings importantes
+        // Obfuscar strings importantes - Versión mejorada
         var _0x2a=['aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9mb2xkZXIv','aHR0cHM6Ly9hcGkucGVydWJwbS5jb20vY2F0YWxvZy9wYWNrYWdlcy9zbHVnLw=='];(function(_0x4dx2e,_0x2a3b){var _0x3e2c=function(_0x5d4e){while(--_0x5d4e){_0x4dx2e['push'](_0x4dx2e['shift']());}};_0x3e2c(++_0x2a3b);}(_0x2a,0x80));var _0x3e2c=function(_0x4dx2e,_0x2a3b){_0x4dx2e=_0x4dx2e-0x0;var _0x5d4e=_0x2a[_0x4dx2e];return _0x5d4e;};function _0x5d4e(_0x3e2c){var _0x4dx2e=atob(_0x3e2c);return _0x4dx2e;}
         var API_FOLDER=_0x5d4e(_0x2a[0]);var API_SLUG=_0x5d4e(_0x2a[1]);
         
-        // Desactivar logs en producción
+        // Desactivar logs en producción - Versión mejorada
         if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
             console.log = function() {};
             console.error = function() {};
             console.warn = function() {};
             console.info = function() {};
             console.debug = function() {};
+            // Ocultar también el objeto console por completo
+            try {
+                delete console.log;
+                delete console.error;
+                delete console.warn;
+                delete console.info;
+                delete console.debug;
+            } catch(e) {}
         }
         
         // ===============================
