@@ -883,7 +883,9 @@ let currentPackName = "perubpm_pack";
             }
         }
 
-        function changeSection(section) {
+        let isHashNavigation = false;
+
+        function changeSection(section, updateHash = true) {
             currentSection = section;
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`tab-${section}`)?.classList.add('active');
@@ -896,8 +898,11 @@ let currentPackName = "perubpm_pack";
             const gallery = document.getElementById('view-gallery');
             gallery.style.display = '';
             
-            // Actualizar URL de forma simple
-            window.location.hash = section;
+            // Actualizar URL según el parámetro
+            if (updateHash && !isHashNavigation) {
+                window.location.hash = section;
+            }
+            isHashNavigation = false;
             
             if (section === 'drive_privado') {
                 renderDrivePrivado();
@@ -1642,23 +1647,24 @@ let currentPackName = "perubpm_pack";
             if (navHistory.length === 0) {
                 currentPackIsFree = false;
                 toggleView('gallery'); 
-                // Volver a la sección anterior usando History API
-                if (window.history.length > 1) {
-                    window.history.back();
-                }
+                window.location.hash = currentSection;
             } else {
                 const prevData = navHistory[navHistory.length - 1];
                 currentPackIsFree = currentPackIsFree || prevData.isFree;
                 renderFolder(prevData); 
+                window.location.hash = `${currentSection}/${encodeURIComponent(prevData.name)}`;
             }
         }
         
         let currentPackIsFree = false;
         
-        function openFolder(data, isFree = false) { 
+        function openFolder(data, isFree = false, updateHash = true) { 
             currentPackIsFree = isFree;
-            navHistory.push(data); 
-            renderFolder(data); 
+            navHistory.push(data);
+            renderFolder(data);
+            if (updateHash) {
+                window.location.hash = `${currentSection}/${encodeURIComponent(data.name)}`;
+            }
         }
         
         function renderFolder(data) {
@@ -2145,38 +2151,39 @@ if (data.remixes) {
         }
 
         // ============================================
-        // LISTENER PARA BOTÓN ATRÁS DEL NAVEGADOR
+        // NAVEGACIÓN CON HASH (#seccion/subcarpeta)
         // ============================================
-        
-        window.addEventListener('popstate', function(event) {
-            if (event.state && event.state.section) {
-                // El usuario presionó el botón atrás del navegador
-                changeSection(event.state.section);
-            } else if (!event.state) {
-                // No hay estado, volver a la sección principal
 
-        // Función simple para manejar navegación
+        const validSections = ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos', 'drive_privado'];
+
         function handleHashNavigation() {
-            const hash = window.location.hash.slice(1); // Quitar el #
-            if (hash && ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos'].includes(hash)) {
-                changeSection(hash);
+            const hash = window.location.hash.slice(1);
+            if (!hash) {
+                changeSection('packs', false);
+                return;
+            }
+
+            const parts = hash.split('/');
+            const section = parts[0];
+            const subfolder = parts[1];
+
+            if (validSections.includes(section)) {
+                isHashNavigation = true;
+                changeSection(section, false);
+                if (subfolder && globalData[section]) {
+                    const pack = globalData[section].find(p => p.name === decodeURIComponent(subfolder));
+                    if (pack) {
+                        openFolder(pack, pack.isFree || false, false);
+                    }
+                }
             }
         }
 
-        // Listener para cambios en el hash
         window.addEventListener('hashchange', handleHashNavigation);
-
-        // Listener para botón atrás del navegador
         window.addEventListener('popstate', function(event) {
-            if (!event.state) {
-                changeSection('packs');
-            }
-        });
-
-        // Inicializar al cargar la página
-        window.addEventListener('load', function() {
             handleHashNavigation();
         });
+        window.addEventListener('load', handleHashNavigation);
 
     </script>
 </body>
