@@ -1384,10 +1384,16 @@ const firebaseConfig = {
                     <div class="item-row p-4 rounded-xl flex justify-between items-center gap-4">
                         <div class="flex items-center gap-3">
                             <button onclick="playAudio('${refId}', '${fileName}', this)" class="play-btn bg-blue-600/20 text-blue-400 px-3 py-2 rounded-lg text-xs font-black uppercase hover:bg-blue-600 hover:text-white transition-all">▶</button>
-                            <div class="truncate">
+                            <div class="truncate flex-1">
                                 <span class="search-hit-badge${m.isFree ? ' free' : ''}">${m.section}${m.isFree ? ' 🆓' : ''}</span>
                                 <h5 class="text-[10px] font-black uppercase truncate">${m.name}</h5>
                                 <p class="text-[7px] text-slate-500 font-bold uppercase truncate">${m.packName}</p>
+                                <div class="player-progress hidden" id="progress-${refId}" style="margin-top: 4px;">
+                                    <div class="progress-bar" style="height: 3px; background: #334155; border-radius: 2px; overflow: hidden;">
+                                        <div class="progress-fill" style="height: 100%; background: #3b82f6; width: 0%; transition: width 0.5s;"></div>
+                                    </div>
+                                    <div class="progress-time text-[6px] text-slate-500 mt-1">0:00 / 1:00</div>
+                                </div>
                             </div>
                         </div>
                         ${actionBtn}
@@ -1917,11 +1923,26 @@ if (data.remixes) {
         }
 
         let currentAudio = null;
+        let currentProgressInterval = null;
+        let currentRefId = null;
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
         
         async function playAudio(refId, fileName, btn) {
             // Si ya hay un audio reproduciéndose, detenerlo
             if (currentAudio) {
                 currentAudio.pause();
+                // Ocultar progreso anterior
+                const oldProgress = document.getElementById('progress-' + currentRefId);
+                if (oldProgress) {
+                    oldProgress.classList.add('hidden');
+                    oldProgress.querySelector('.progress-fill').style.width = '0%';
+                    oldProgress.querySelector('.progress-time').innerText = '0:00 / 1:00';
+                }
                 currentAudio = null;
                 document.querySelectorAll('.play-btn').forEach(b => b.innerText = '▶');
             }
@@ -1931,12 +1952,19 @@ if (data.remixes) {
             // Primero obtener la URL de preview (solo 1 minuto)
             btn.innerText = '⏳';
             
+            // Mostrar progress bar
+            const progressEl = document.getElementById('progress-' + refId);
+            if (progressEl) {
+                progressEl.classList.remove('hidden');
+            }
+            
             try {
                 // Usar la API de preview (1 minuto máximo)
                 const previewUrl = `/api/preview?ref=${refId}&name=${encodeURIComponent(realFileName)}`;
                 
                 // Crear audio con la URL de preview
                 currentAudio = new Audio(previewUrl);
+                currentRefId = refId;
                 
                 btn.innerText = '⏸';
                 
@@ -1947,11 +1975,28 @@ if (data.remixes) {
                     alert('Error al reproducir audio');
                     btn.innerText = '▶';
                     currentAudio = null;
+                    if (progressEl) progressEl.classList.add('hidden');
                 });
+                
+                // Actualizar progreso cada segundo
+                currentProgressInterval = setInterval(() => {
+                    if (currentAudio && progressEl) {
+                        const current = currentAudio.currentTime;
+                        const duration = currentAudio.duration || 60;
+                        const percent = (current / duration) * 100;
+                        progressEl.querySelector('.progress-fill').style.width = percent + '%';
+                        progressEl.querySelector('.progress-time').innerText = formatTime(current) + ' / ' + formatTime(duration);
+                    }
+                }, 500);
                 
                 currentAudio.onended = function() {
                     btn.innerText = '▶';
                     currentAudio = null;
+                    clearInterval(currentProgressInterval);
+                    if (progressEl) {
+                        progressEl.querySelector('.progress-fill').style.width = '100%';
+                        progressEl.querySelector('.progress-time').innerText = '1:00 / 1:00';
+                    }
                 };
                 
                 // Also handle pause
@@ -1971,6 +2016,7 @@ if (data.remixes) {
                 alert('Error al obtener audio: ' + err.message);
                 btn.innerText = '▶';
                 currentAudio = null;
+                if (progressEl) progressEl.classList.add('hidden');
             }
         }
 
