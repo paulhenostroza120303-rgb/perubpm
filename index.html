@@ -896,10 +896,7 @@ let currentPackName = "perubpm_pack";
             const gallery = document.getElementById('view-gallery');
             gallery.style.display = '';
             
-            // Actualizar URL con History API
-            const newUrl = window.location.origin + '/#' + section;
-            window.history.pushState({ section: section }, '', newUrl);
-            // Forzar actualización del hash
+            // Actualizar URL de forma simple
             window.location.hash = section;
             
             if (section === 'drive_privado') {
