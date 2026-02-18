@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing ref param" });
   }
 
-  const allowedExts = ['mp3', 'm4a', 'wav', 'aac', 'ogg'];
+  const allowedExts = ['mp3', 'm4a', 'wav', 'flac', 'aac', 'ogg'];
   const ext = name.split('.').pop().toLowerCase();
   
   if (!allowedExts.includes(ext)) {
@@ -14,14 +14,20 @@ export default async function handler(req, res) {
   }
 
   // Calcular tamaño basado en formato
-  // MP3: 3MB (aprox 3 min a 128kbps)
-  // WAV: 10MB (aprox 50-60 seg a 1.4Mbps)
+  // MP3: 3MB
+  // M4A: 3.5MB
+  // WAV: 10MB
+  // FLAC: 6MB
   // Otros: 2MB
   let MAX_BYTES;
   if (ext === 'mp3') {
     MAX_BYTES = 3000000;
+  } else if (ext === 'm4a') {
+    MAX_BYTES = 3500000;
   } else if (ext === 'wav') {
     MAX_BYTES = 10000000;
+  } else if (ext === 'flac') {
+    MAX_BYTES = 6000000;
   } else {
     MAX_BYTES = 2000000;
   }
