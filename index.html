@@ -1591,7 +1591,7 @@ const firebaseConfig = {
                 if (detail.packages && detail.packages.length > 0) {
                     let allRemixes = [];
                     for (const subPackage of detail.packages) {
-                        await new Promise(r => setTimeout(r, 1000));
+                        await new Promise(r => setTimeout(r, 500));
                         const subRemixes = await fetchPackageContents(subPackage.id, depth + 1);
                         allRemixes = allRemixes.concat(subRemixes);
                     }
@@ -1611,7 +1611,7 @@ const firebaseConfig = {
         async function processPackageRecursive(packData, depth = 0) {
             if (packData.packages && packData.packages.length > 0) {
                 for (let sub of packData.packages) {
-                    await new Promise(r => setTimeout(r, 1500));
+                    await new Promise(r => setTimeout(r, 800));
                     
                     const subRemixes = await fetchPackageContents(sub.id, depth + 1);
                     sub.remixes = subRemixes;
@@ -1709,7 +1709,7 @@ const firebaseConfig = {
                             timestamp: Date.now()
                         });
                         
-                        await new Promise(r => setTimeout(r, 1000)); 
+                        await new Promise(r => setTimeout(r, 500)); 
                         
                     } catch (err) {
                         const continuar = confirm(
