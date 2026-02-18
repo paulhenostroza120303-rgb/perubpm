@@ -1613,7 +1613,7 @@ const firebaseConfig = {
                 }
             }
             
-            if ((!packData.packages || packData.packages.length === 0) && packData.id) {
+            if ((!packData.packages || packData.packages.length === 0) && packData.id && !packData.remixes) {
                 const remixes = await fetchPackageContents(packData.id, depth);
                 packData.remixes = remixes;
             }
