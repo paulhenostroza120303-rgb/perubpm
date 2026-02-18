@@ -369,14 +369,14 @@ Mobile UI
         var API_FOLDER = 'https://api.perubpm.com/catalog/packages/folder/';
         var API_SLUG = 'https://api.perubpm.com/catalog/packages/slug/';
         
-        // Desactivar logs en producción
-        if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
-            console.log = function() {};
-            console.error = function() {};
-            console.warn = function() {};
-            console.info = function() {};
-            console.debug = function() {};
-        }
+        // Desactivar logs en producción (comentado para debugging)
+        // if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
+        //     console.log = function() {};
+        //     console.error = function() {};
+        //     console.warn = function() {};
+        //     console.info = function() {};
+        //     console.debug = function() {};
+        // }
         
         // ===============================
 // VARIABLES GLOBALES DEL PACK
@@ -1579,7 +1579,10 @@ const firebaseConfig = {
 
         async function fetchPackageContents(packageId, depth = 0) {
             try {
-                const detail = await fetchWithRetry(API_FOLDER + packageId);
+                const url = API_FOLDER + packageId;
+                console.log('🔍 Fetching:', url);
+                const detail = await fetchWithRetry(url);
+                console.log('✅ Got:', detail.name, '| remixes:', detail.remixes?.length || 0, '| packages:', detail.packages?.length || 0);
                 
                 if (detail.remixes && detail.remixes.length > 0) {
                     return detail.remixes;
@@ -1599,6 +1602,8 @@ const firebaseConfig = {
                 return [];
                 
             } catch (error) {
+                document.getElementById('statusLabel').innerText = '❌ Error: ' + error.message;
+                console.error('❌ fetchPackageContents error:', error);
                 return [];
             }
         }
