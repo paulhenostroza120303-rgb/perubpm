@@ -927,6 +927,20 @@ const firebaseConfig = {
             }
         }
         
+        function handleDriveSearch() {
+            const input = document.getElementById('driveSearchInput');
+            const searchTerm = input.value.toLowerCase().trim();
+            const container = document.getElementById('driveListContainer');
+            
+            if (!container) return;
+            
+            const rows = container.querySelectorAll('[data-file-row]');
+            rows.forEach(row => {
+                const fileName = row.getAttribute('data-filename') || '';
+                row.style.display = fileName.includes(searchTerm) ? '' : 'none';
+            });
+        }
+        
         function renderDrivePrivado() {
             const container = document.getElementById('view-gallery');
             container.innerHTML = '';
@@ -937,9 +951,20 @@ const firebaseConfig = {
                 return;
             }
             
+            // Buscador para Drive Privado
+            const searchDiv = document.createElement('div');
+            searchDiv.style.cssText = 'margin-bottom: 1rem;';
+            searchDiv.innerHTML = `
+                <input type="text" id="driveSearchInput" onkeyup="handleDriveSearch()" 
+                    placeholder="BUSCAR EN DRIVE PRIVADO..." 
+                    style="background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 0.75rem 1rem; border-radius: 0.75rem; color: #f1f5f9; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; outline: none;">
+            `;
+            container.appendChild(searchDiv);
+            
             // Contenedor estilo Explorer
             const listContainer = document.createElement('div');
-            listContainer.style.cssText = 'background: rgba(15,23,42,0.8); border-radius: 1.5rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);';
+            listContainer.id = 'driveListContainer';
+            listContainer.style.cssText = 'background: rgba(15,23,42,0.8); border-radius: 1.5rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); max-height: 70vh; overflow-y: auto;';
             
             // Header
             const header = document.createElement('div');
@@ -959,6 +984,8 @@ const firebaseConfig = {
                 const icon = getFileIcon(ext, isFolder);
                 
                 const row = document.createElement('div');
+                row.setAttribute('data-file-row', '');
+                row.setAttribute('data-filename', file.name.toLowerCase());
                 row.style.cssText = 'display: grid; grid-template-columns: 50px 1fr 120px; padding: 0.75rem 1.5rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.2s;';
                 row.onmouseover = () => row.style.background = 'rgba(30,41,59,0.5)';
                 row.onmouseout = () => row.style.background = 'transparent';
