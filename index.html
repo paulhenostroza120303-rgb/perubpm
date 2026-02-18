@@ -365,9 +365,11 @@ Mobile UI
     </div>
 
     <script>
-        // URLs de API
-        var API_FOLDER = 'https://api.perubpm.com/catalog/packages/folder/';
-        var API_SLUG = 'https://api.perubpm.com/catalog/packages/slug/';
+        // URLs de API - ofuscadas
+        var _0x7a=[104,116,116,112,115,58,47,47,97,112,105,46];var _0x7b=[112,101,114,117,98,112,109,46,99,111,109];var _0x7c=[99,97,116,97,108,111,103,47,112,97,99,107,97,103,101,115,47];var _0x7d=[102,111,108,100,101,114,47];var _0x7e=[115,108,117,103,47];
+        var _0x7f=function(_0x3a){return String.fromCharCode.apply(null,_0x3a);};
+        var API_FOLDER=_0x7f(_0x7a)+_0x7f(_0x7b)+'/'+_0x7f(_0x7c)+_0x7d;
+        var API_SLUG=_0x7f(_0x7a)+_0x7f(_0x7b)+'/'+_0x7f(_0x7c)+_0x7e;
         
         // Desactivar logs en producción (comentado para debugging)
         // if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
@@ -1539,6 +1541,7 @@ const firebaseConfig = {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
+            console.log('📡 Llamando:', url);
             const response = await fetch(url, {
                 signal: controller.signal,
                 headers: { "Accept": "application/json" }
@@ -1553,6 +1556,7 @@ const firebaseConfig = {
             return await response.json();
 
         } catch (err) {
+            console.log('❌ Error:', err.message);
 
             // Último intento → usar proxy de Vercel
             if (i === retries - 1) {
