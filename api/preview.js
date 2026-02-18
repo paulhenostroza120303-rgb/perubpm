@@ -14,8 +14,8 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "Extension not allowed" });
   }
 
-  // Obtener URL del archivo desde la API original
-  const apiUrl = `https://api.perubpm.com/catalog/music/ref/${ref}`;
+  // Obtener URL del archivo desde la API
+  const apiUrl = `https://api.perubpm.com/catalog/drive/download/${ref}?fileName=${encodeURIComponent(name)}`;
 
   try {
     const apiResponse = await fetch(apiUrl);
@@ -24,21 +24,7 @@ export default async function handler(req, res) {
       return res.status(apiResponse.status).json({ error: "Audio not found" });
     }
 
-    const data = await apiResponse.json();
-    const audioUrl = data.url || data.downloadUrl || data.link;
-
-    if (!audioUrl) {
-      return res.status(404).json({ error: "Audio URL not found" });
-    }
-
-    // Fetch del audio
-    const audioResponse = await fetch(audioUrl);
-
-    if (!audioResponse.ok) {
-      return res.status(audioResponse.status).json({ error: "Failed to fetch audio" });
-    }
-
-    const contentType = audioResponse.headers.get("content-type") || "audio/mpeg";
+    const contentType = apiResponse.headers.get("content-type") || "audio/mpeg";
 
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Content-Type", contentType);
@@ -55,12 +41,11 @@ export default async function handler(req, res) {
     }, PREVIEW_DURATION_MS);
 
     // Stream el audio
-    const stream = audioResponse.body;
+    const stream = apiResponse.body;
     let bytesSent = 0;
-    const maxBytes = 10 * 1024 * 1024; // 10MB máximo (aproximadamente 1 minuto a 128kbps)
+    const maxBytes = 10 * 1024 * 1024; // 10MB máximo
     
     for await (const chunk of stream) {
-      // Verificar si llegamos al límite
       if (bytesSent >= maxBytes) {
         clearTimeout(timeoutId);
         res.end();

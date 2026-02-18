@@ -1959,8 +1959,11 @@ if (data.remixes) {
             }
             
             try {
+                console.log('Reproduciendo ref:', refId, 'name:', realFileName);
+                
                 // Usar la API de preview (1 minuto máximo)
                 const previewUrl = `/api/preview?ref=${refId}&name=${encodeURIComponent(realFileName)}`;
+                console.log('Preview URL:', previewUrl);
                 
                 // Crear audio con la URL de preview
                 currentAudio = new Audio(previewUrl);
@@ -1972,7 +1975,6 @@ if (data.remixes) {
                     console.log('Reproduciendo preview (1 minuto)');
                 }).catch(err => {
                     console.error('Error al reproducir:', err);
-                    alert('Error al reproducir audio');
                     btn.innerText = '▶';
                     currentAudio = null;
                     if (progressEl) progressEl.classList.add('hidden');
@@ -2013,7 +2015,6 @@ if (data.remixes) {
                 
             } catch (err) {
                 console.error('Error:', err);
-                alert('Error al obtener audio: ' + err.message);
                 btn.innerText = '▶';
                 currentAudio = null;
                 if (progressEl) progressEl.classList.add('hidden');
