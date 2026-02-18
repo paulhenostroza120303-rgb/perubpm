@@ -1342,11 +1342,12 @@ const firebaseConfig = {
                     const p = packItem.data;
                     const originLabel = sectionLabels[packItem.section];
                     const isFreePack = packItem.isFree;
+                    const packDate = packItem.originalDate || '';
 
                     if (p.remixes) {
                         p.remixes.forEach(r => {
                             if (r && r.name && r.name.toLowerCase().includes(query)) 
-                                foundMusic.push({ ...r, packName: p.name, section: originLabel, isFree: isFreePack });
+                                foundMusic.push({ ...r, packName: p.name, section: originLabel, isFree: isFreePack, itemDate: r.metadata?.created || packDate });
                         });
                     }
                     if (p.packages) {
@@ -1354,11 +1355,18 @@ const firebaseConfig = {
                             if (sub && sub.remixes) {
                                 sub.remixes.forEach(r => {
                                     if (r && r.name && r.name.toLowerCase().includes(query)) 
-                                        foundMusic.push({ ...r, packName: `${p.name} > ${sub.name}`, section: originLabel, isFree: isFreePack });
+                                        foundMusic.push({ ...r, packName: `${p.name} > ${sub.name}`, section: originLabel, isFree: isFreePack, itemDate: r.metadata?.created || packDate });
                                 });
                             }
                         });
                     }
+                });
+                
+                // Ordenar por fecha (más reciente primero)
+                foundMusic.sort((a, b) => {
+                    const dateA = new Date(a.itemDate || 0);
+                    const dateB = new Date(b.itemDate || 0);
+                    return dateB - dateA;
                 });
             }
 
