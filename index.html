@@ -2154,35 +2154,32 @@ if (data.remixes) {
                 changeSection(event.state.section);
             } else if (!event.state) {
                 // No hay estado, volver a la sección principal
-                changeSection('packs');
-            }
-        });
 
-        // ============================================
-        // LISTENER PARA BOTÓN ATRÁS DEL NAVEGADOR
-        // ============================================
-        
-        window.addEventListener('popstate', function(event) {
-            if (event.state && event.state.section) {
-                // El usuario presionó el botón atrás del navegador
-                changeSection(event.state.section);
-            } else if (!event.state) {
-                // No hay estado, volver a la sección principal
-                changeSection('packs');
-            }
-        });
-
-        // Inicializar URL al cargar la página
-        window.addEventListener('load', function() {
+        // Función simple para manejar navegación
+        function handleHashNavigation() {
             const hash = window.location.hash.slice(1); // Quitar el #
             if (hash && ['packs', 'membresias', 'membresias_extranjeras', 'video_remixes_latinos', 'backups', 'editores_peruanos'].includes(hash)) {
                 changeSection(hash);
             }
+        }
+
+        // Listener para cambios en el hash
+        window.addEventListener('hashchange', handleHashNavigation);
+
+        // Listener para botón atrás del navegador
+        window.addEventListener('popstate', function(event) {
+            if (!event.state) {
+                changeSection('packs');
+            }
+        });
+
+        // Inicializar al cargar la página
+        window.addEventListener('load', function() {
+            handleHashNavigation();
         });
 
     </script>
 </body>
 </html>
-
 
 
