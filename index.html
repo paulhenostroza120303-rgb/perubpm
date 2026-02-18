@@ -366,10 +366,12 @@ Mobile UI
 
     <script>
         // Desactivar logs en producción
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
             console.log = function() {};
             console.error = function() {};
             console.warn = function() {};
+            console.info = function() {};
+            console.debug = function() {};
         }
         
         // ===============================
