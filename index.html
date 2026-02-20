@@ -1475,7 +1475,8 @@ const firebaseConfig = {
             
             let foundMusic = [];
             
-            if (query.length >= 3) {
+            // Buscar en remixes desde 2 caracteres
+            if (query.length >= 2) {
                 allCombined.forEach(packItem => {
                     // Validar que packItem y packItem.data existan
                     if (!packItem || !packItem.data) return;
