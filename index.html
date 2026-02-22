@@ -1589,7 +1589,7 @@ const firebaseConfig = {
 
         async function fetchPackageContents(packageId, depth = 0) {
             try {
-                const url = API_FOLDER + 'folder/' + packageId;
+                const url = API_FOLDER + 'en/folder/' + packageId;
                 console.log('🔍 Fetching:', url);
                 const detail = await fetchWithRetry(url);
                 console.log('✅ Got:', detail.name, '| remixes:', detail.remixes?.length || 0, '| packages:', detail.packages?.length || 0);
