@@ -1696,7 +1696,7 @@ const firebaseConfig = {
                         if (item.packages || item.remixes) {
                             packData = item;
                         } else {
-                            packData = await fetchWithRetry(API_SLUG + 'slug/' + item.slug);
+                            packData = await fetchWithRetry(API_SLUG + 'en/slug/' + item.slug);
                         }
                         
                         const processedPack = await processPackageRecursive(packData);
