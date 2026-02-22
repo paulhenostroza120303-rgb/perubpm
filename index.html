@@ -1589,7 +1589,7 @@ const firebaseConfig = {
 
         async function fetchPackageContents(packageId, packageSlug, depth = 0) {
             try {
-                const url = API_FOLDER + 'en/slug/' + packageSlug;
+                const url = API_FOLDER + 'slug/' + packageSlug;
                 console.log('🔍 Fetching:', url);
                 const detail = await fetchWithRetry(url);
                 console.log('✅ Got:', detail.name, '| remixes:', detail.remixes?.length || 0, '| packages:', detail.packages?.length || 0);
@@ -1696,7 +1696,7 @@ const firebaseConfig = {
                         if (item.packages || item.remixes) {
                             packData = item;
                         } else {
-                            packData = await fetchWithRetry(API_SLUG + 'en/slug/' + item.slug);
+                            packData = await fetchWithRetry(API_SLUG + 'slug/' + item.slug);
                         }
                         
                         const processedPack = await processPackageRecursive(packData);
