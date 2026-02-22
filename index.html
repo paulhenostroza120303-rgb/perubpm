@@ -1587,9 +1587,9 @@ const firebaseConfig = {
         // EXPLORACIÓN RECURSIVA DE PAQUETES
         // ============================================
 
-        async function fetchPackageContents(packageId, depth = 0) {
+        async function fetchPackageContents(packageId, packageSlug, depth = 0) {
             try {
-                const url = API_FOLDER + 'en/folder/' + packageId;
+                const url = API_FOLDER + 'en/slug/' + packageSlug;
                 console.log('🔍 Fetching:', url);
                 const detail = await fetchWithRetry(url);
                 console.log('✅ Got:', detail.name, '| remixes:', detail.remixes?.length || 0, '| packages:', detail.packages?.length || 0);
@@ -1602,7 +1602,7 @@ const firebaseConfig = {
                     let allRemixes = [];
                     for (const subPackage of detail.packages) {
                         await new Promise(r => setTimeout(r, 500));
-                        const subRemixes = await fetchPackageContents(subPackage.id, depth + 1);
+                        const subRemixes = await fetchPackageContents(subPackage.id, subPackage.slug, depth + 1);
                         allRemixes = allRemixes.concat(subRemixes);
                     }
                     
@@ -1623,13 +1623,13 @@ const firebaseConfig = {
                 for (let sub of packData.packages) {
                     await new Promise(r => setTimeout(r, 800));
                     
-                    const subRemixes = await fetchPackageContents(sub.id, depth + 1);
+                    const subRemixes = await fetchPackageContents(sub.id, sub.slug, depth + 1);
                     sub.remixes = subRemixes;
                 }
             }
             
             if ((!packData.packages || packData.packages.length === 0) && packData.id && !packData.remixes) {
-                const remixes = await fetchPackageContents(packData.id, depth);
+                const remixes = await fetchPackageContents(packData.id, packData.slug, depth);
                 packData.remixes = remixes;
             }
             
