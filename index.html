@@ -2315,12 +2315,24 @@ if (data.remixes) {
                 section = 'packs';
             }
 
-            isHashNavigation = true;
+isHashNavigation = true;
             changeSection(section, false);
+
+            // Función para buscar pack de forma flexible
+            function findPack(packs, searchTerm) {
+                if (!packs || !searchTerm) return null;
+                var decoded = decodeURIComponent(searchTerm).toLowerCase();
+                return packs.find(function(p) {
+                    if (!p.name) return false;
+                    var nameLower = p.name.toLowerCase();
+                    // Coincidencia exacta o parcial
+                    return nameLower === decoded || nameLower.includes(decoded) || decoded.includes(nameLower);
+                });
+            }
 
             // Solo intentar abrir subcarpeta si los datos ya están cargados
             if (subfolder && globalData[section] && globalData[section].length > 0) {
-                var pack = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
+                var pack = findPack(globalData[section], subfolder);
                 if (pack) {
                     console.log('📁 Abriendo carpeta:', pack.name);
                     openFolder(pack, pack.isFree || false, false);
@@ -2332,7 +2344,7 @@ if (data.remixes) {
                 // Reintentar después de un momento
                 setTimeout(function() {
                     if (globalData[section] && globalData[section].length > 0) {
-                        var packRetry = globalData[section].find(function(p) { return p.name === decodeURIComponent(subfolder); });
+                        var packRetry = findPack(globalData[section], subfolder);
                         if (packRetry) {
                             openFolder(packRetry, packRetry.isFree || false, false);
                         }
