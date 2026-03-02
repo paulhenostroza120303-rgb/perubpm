@@ -1319,7 +1319,7 @@ const firebaseConfig = {
                 "capo": "https://perubpm.blob.core.windows.net/static/assets/categories/6932681f48898f3f4159e61e.jpg",
                 "deyvid": "https://perubpm.blob.core.windows.net/static/assets/categories/69382f67fe39b332dc28ad7c.jpg",
                 "joel music": "https://perubpm.blob.core.windows.net/static/assets/categories/6934cdebfe39b332dc28ad76.jpg",
-                "otros": "https://perubpm.blob.core.windows.net/static/assets/categories/6942d4c7568e321b36788e5f.jpg"
+                "otros_editores": "https://perubpm.blob.core.windows.net/static/assets/categories/6942d4c7568e321b36788e5f.jpg"
             };
 
             let lastMonthLabel = "";
@@ -1377,7 +1377,7 @@ const firebaseConfig = {
                 monthContainer.style.display = isFirst ? 'grid' : 'none';
                 monthContainer.style.gridColumn = '1 / -1';
                 
-                items.forEach(({ item, packNameLower, fullDateLabel }) => {
+items.forEach(({ item, packNameLower, fullDateLabel }) => {
                     const pack = item.data || item;
                     let coverUrl = item.customImage || "";
                     if (!coverUrl) {
@@ -1388,7 +1388,8 @@ const firebaseConfig = {
                             } 
                         }
                     }
-                    if (!coverUrl) coverUrl = imageMap["otros"];
+                    const defaultImage = item.section === 'editores_peruanos' ? imageMap["otros_editores"] : imageMap["otros"];
+                    if (!coverUrl) coverUrl = defaultImage;
 
                     const sectionName = sectionLabels[item.section] || "PACK";
                     const isFreePack = item.isFree;
@@ -1400,7 +1401,7 @@ const firebaseConfig = {
                         <div class="admin-controls" id="admin-ctrl-${item.id}"></div>
                         <div onclick="openPackById('${item.section}', '${item.id}', ${isFreePack})">
                             <div class="aspect-square bg-slate-900 rounded-3xl mb-6 border border-white/5 overflow-hidden">
-                                <img src="${coverUrl}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='${imageMap["otros"]}'">
+                                <img src="${coverUrl}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='${defaultImage}'">
                             </div>
                             <h4 class="text-[11px] font-black uppercase truncate">${pack.name || 'Sin nombre'}</h4>
                             <div class="flex justify-between items-center mt-3">
