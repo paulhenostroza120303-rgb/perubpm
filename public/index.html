@@ -376,6 +376,12 @@ Mobile UI
         var API_FOLDER=_0x7f(_0x7a)+_0x7f(_0x7b)+'/'+_0x7f(_0x7c);
         var API_SLUG=_0x7f(_0x7a)+_0x7f(_0x7b)+'/'+_0x7f(_0x7c);
         
+        // URL de Azure Blob - ofuscada
+        var _0xbl0=[104,116,116,112,115,58,47,47,112,101,114,117,98,112,109,46,98,108,111,98,46,99,111,114,101,46,119,105,110,100,111,119,115,46,110,101,116];
+        var _0xblf=function(_0x3a){return String.fromCharCode.apply(null,_0x3a);};
+        var BLOB_URL=_0xblf(_0xbl0)+'/';
+        var BLOB_DOMAIN=_0xblf(_0xbl0).split('/')[2];
+        
         // Desactivar logs en producción (comentado para debugging)
         // if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
         //     console.log = function() {};
@@ -459,7 +465,7 @@ const firebaseConfig = {
                 
                 if (!hasValidExt) return false;
                 
-                const trustedDomains = ['perubpm.blob.core.windows.net'];
+                const trustedDomains = [BLOB_DOMAIN];
                 const isTrustedDomain = trustedDomains.some(domain => 
                     urlObj.hostname.includes(domain)
                 );
@@ -1370,8 +1376,8 @@ const firebaseConfig = {
                     // Obtener customImage - primero intentar en item, luego en pack
                     let coverUrl = item.customImage || pack.customImage;
                     
-                    // Convertir URL de Azure a proxy si existe
-                    if (coverUrl && coverUrl.indexOf('blob.core.windows.net') > -1) {
+// Convertir URL de Azure a proxy si existe
+                    if (coverUrl && coverUrl.indexOf(BLOB_DOMAIN) > -1) {
                         var fileName = coverUrl.split('/').pop();
                         if (fileName) {
                             coverUrl = '/api/image?img=' + fileName;
@@ -1972,7 +1978,7 @@ if (data.remixes) {
             if (!newImg) return;
             
             if (!validateImageUrl(newImg)) {
-                alert("⚠️ URL inválida o dominio no confiable. Solo se permiten imágenes de perubpm.blob.core.windows.net");
+                alert("⚠️ URL inválida o dominio no confiable. Solo se permiten imágenes de " + BLOB_DOMAIN);
                 return;
             }
             
