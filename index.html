@@ -1692,10 +1692,10 @@ const firebaseConfig = {
                     statusLabel.innerText = `SINCRONIZANDO: ${item.slug || item.name || 'ITEM'} (${i+1}/${items.length})`;
                     
                     try {
-                        let packData;
+let packData;
                         
-                        // Si el item ya tiene la información completa (packages, remixes), usarlo directamente
-                        if (item.packages || item.remixes) {
+                        // Si el item ya tiene información completa CON CONTENIDO, usarlo directamente
+                        if ((item.packages && item.packages.length > 0) || (item.remixes && item.remixes.length > 0)) {
                             packData = item;
                         } else {
                             packData = await fetchWithRetry(API_SLUG + 'slug/' + item.slug);
