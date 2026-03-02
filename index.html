@@ -2322,15 +2322,22 @@ var subfolder = parts[1];
             function findPack(packs, searchTerm) {
                 if (!packs || !searchTerm) return null;
                 var decoded = decodeURIComponent(searchTerm).toLowerCase();
+                // Limpiar el término de búsqueda (quitar caracteres especiales)
+                var cleanDecoded = decoded.replace(/[%20\-_]/g, ' ').replace(/[^a-z0-9áéíóúñ]/g, '');
+                
                 return packs.find(function(p) {
                     if (!p) return false;
                     var nameLower = (p.name || '').toLowerCase();
                     var idLower = (p.id || '').toLowerCase();
                     var slugLower = (p.slug || '').toLowerCase();
+                    var cleanName = nameLower.replace(/[^a-z0-9áéíóúñ]/g, '');
+                    
                     return nameLower === decoded || nameLower.includes(decoded) || 
                            idLower === decoded || idLower.includes(decoded) ||
                            slugLower === decoded || slugLower.includes(decoded) ||
-                           decoded.includes(nameLower);
+                           decoded.includes(nameLower) ||
+                           cleanName.includes(cleanDecoded) ||
+                           cleanDecoded.includes(cleanName);
                 });
             }
 
