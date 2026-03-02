@@ -2318,18 +2318,18 @@ var subfolder = parts[1];
             isHashNavigation = true;
             changeSection(section, false);
 
-            // Función para buscar pack por nombre, id o slug
+// Función para buscar pack por nombre, id o slug
             function findPack(packs, searchTerm) {
                 if (!packs || !searchTerm) return null;
-                var decoded = decodeURIComponent(searchTerm).toLowerCase();
-                // Limpiar el término de búsqueda (quitar caracteres especiales)
+                var decoded = decodeURIComponent(searchTerm).toLowerCase().trim();
                 var cleanDecoded = decoded.replace(/[%20\-_]/g, ' ').replace(/[^a-z0-9áéíóúñ]/g, '');
                 
                 return packs.find(function(p) {
                     if (!p) return false;
-                    var nameLower = (p.name || '').toLowerCase();
+                    // Buscar en múltiples propiedades
+                    var nameLower = (p.name || p.data?.name || '').toLowerCase();
                     var idLower = (p.id || '').toLowerCase();
-                    var slugLower = (p.slug || '').toLowerCase();
+                    var slugLower = (p.slug || p.data?.slug || '').toLowerCase();
                     var cleanName = nameLower.replace(/[^a-z0-9áéíóúñ]/g, '');
                     
                     return nameLower === decoded || nameLower.includes(decoded) || 
@@ -2346,8 +2346,10 @@ var subfolder = parts[1];
                 if (globalData[section] && globalData[section].length > 0) {
                     var pack = findPack(globalData[section], subfolder);
                     if (pack) {
-                        console.log('📁 Abriendo carpeta:', pack.name);
-                        openFolder(pack, pack.isFree || false, false);
+                        // Los datos del pack pueden estar en pack.data o directamente en pack
+                        var packData = pack.data || pack;
+                        console.log('📁 Abriendo carpeta:', packData.name || pack.name);
+                        openFolder(packData, pack.isFree || packData.isFree || false, false);
                         return true;
                     } else {
                         console.log('⚠️ Pack no encontrado en datos:', decodeURIComponent(subfolder));
