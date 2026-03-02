@@ -2318,14 +2318,19 @@ var subfolder = parts[1];
             isHashNavigation = true;
             changeSection(section, false);
 
-            // Función para buscar pack de forma flexible
+            // Función para buscar pack por nombre, id o slug
             function findPack(packs, searchTerm) {
                 if (!packs || !searchTerm) return null;
                 var decoded = decodeURIComponent(searchTerm).toLowerCase();
                 return packs.find(function(p) {
-                    if (!p.name) return false;
-                    var nameLower = p.name.toLowerCase();
-                    return nameLower === decoded || nameLower.includes(decoded) || decoded.includes(nameLower);
+                    if (!p) return false;
+                    var nameLower = (p.name || '').toLowerCase();
+                    var idLower = (p.id || '').toLowerCase();
+                    var slugLower = (p.slug || '').toLowerCase();
+                    return nameLower === decoded || nameLower.includes(decoded) || 
+                           idLower === decoded || idLower.includes(decoded) ||
+                           slugLower === decoded || slugLower.includes(decoded) ||
+                           decoded.includes(nameLower);
                 });
             }
 
