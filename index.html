@@ -2307,7 +2307,7 @@ if (data.remixes) {
             var cleanPath = path.replace(/^\//, '');
             var parts = cleanPath.split('/');
             var section = parts[0];
-            var subfolder = parts[1];
+var subfolder = parts[1];
 
             console.log('🧭 Navegando a:', section, subfolder);
 
@@ -2315,7 +2315,7 @@ if (data.remixes) {
                 section = 'packs';
             }
 
-isHashNavigation = true;
+            isHashNavigation = true;
             changeSection(section, false);
 
             // Función para buscar pack de forma flexible
@@ -2325,31 +2325,40 @@ isHashNavigation = true;
                 return packs.find(function(p) {
                     if (!p.name) return false;
                     var nameLower = p.name.toLowerCase();
-                    // Coincidencia exacta o parcial
                     return nameLower === decoded || nameLower.includes(decoded) || decoded.includes(nameLower);
                 });
             }
 
-            // Solo intentar abrir subcarpeta si los datos ya están cargados
-            if (subfolder && globalData[section] && globalData[section].length > 0) {
-                var pack = findPack(globalData[section], subfolder);
-                if (pack) {
-                    console.log('📁 Abriendo carpeta:', pack.name);
-                    openFolder(pack, pack.isFree || false, false);
-                } else {
-                    console.log('⚠️ Pack no encontrado:', decodeURIComponent(subfolder));
-                }
-            } else if (subfolder) {
-                console.log('⏳ Esperando datos para abrir subcarpeta...');
-                // Reintentar después de un momento
-                setTimeout(function() {
-                    if (globalData[section] && globalData[section].length > 0) {
-                        var packRetry = findPack(globalData[section], subfolder);
-                        if (packRetry) {
-                            openFolder(packRetry, packRetry.isFree || false, false);
-                        }
+            // Función para intentar abrir el pack
+            function tryOpenPack() {
+                if (globalData[section] && globalData[section].length > 0) {
+                    var pack = findPack(globalData[section], subfolder);
+                    if (pack) {
+                        console.log('📁 Abriendo carpeta:', pack.name);
+                        openFolder(pack, pack.isFree || false, false);
+                        return true;
+                    } else {
+                        console.log('⚠️ Pack no encontrado en datos:', decodeURIComponent(subfolder));
                     }
-                }, 2000);
+                }
+                return false;
+            }
+
+            // Intentar abrir inmediatamente o esperar
+            if (subfolder) {
+                if (!tryOpenPack()) {
+                    console.log('⏳ Esperando datos para abrir subcarpeta...');
+                    var intentos = 0;
+                    var interval = setInterval(function() {
+                        intentos++;
+                        if (tryOpenPack() || intentos >= 10) {
+                            clearInterval(interval);
+                            if (intentos >= 10) {
+                                console.log('❌ No se pudo abrir el pack después de 10 intentos');
+                            }
+                        }
+                    }, 1000);
+                }
             }
         }
 
