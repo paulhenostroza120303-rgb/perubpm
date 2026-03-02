@@ -382,14 +382,14 @@ Mobile UI
         var BLOB_URL=_0xblf(_0xbl0)+'/';
         var BLOB_DOMAIN=_0xblf(_0xbl0).split('/')[2];
         
-        // Desactivar logs en producción (comentado para debugging)
-        // if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
-        //     console.log = function() {};
-        //     console.error = function() {};
-        //     console.warn = function() {};
-        //     console.info = function() {};
-        //     console.debug = function() {};
-        // }
+        // Desactivar logs en producción
+        if (window.location.hostname.indexOf('localhost') === -1 && window.location.hostname.indexOf('127.0.0.1') === -1) {
+            console.log = function() {};
+            console.error = function() {};
+            console.warn = function() {};
+            console.info = function() {};
+            console.debug = function() {};
+        }
         
         // ===============================
 // VARIABLES GLOBALES DEL PACK
