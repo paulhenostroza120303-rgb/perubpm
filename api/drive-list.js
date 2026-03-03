@@ -18,6 +18,7 @@ const FOLDER_ID = '14VOnsz94KDDCtbk7XcoQHvpCAHXl58H7';
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300');
   
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });

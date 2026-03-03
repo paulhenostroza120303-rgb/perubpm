@@ -876,10 +876,22 @@ const firebaseConfig = {
         
         async function loadDrivePrivado() {
             try {
-                // En desarrollo local, la API no está disponible
                 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                     console.log('📁 Drive Privado: API no disponible en desarrollo local');
                     drivePrivadoFiles = [];
+                    return;
+                }
+                
+                const cacheKey = 'drivePrivadoCache';
+                const cacheTimeKey = 'drivePrivadoCacheTime';
+                const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+                
+                const cached = localStorage.getItem(cacheKey);
+                const cachedTime = localStorage.getItem(cacheTimeKey);
+                
+                if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+                    drivePrivadoFiles = JSON.parse(cached);
+                    console.log('📁 Drive Privado (desde caché):', drivePrivadoFiles.length, 'archivos');
                     return;
                 }
                 
@@ -898,6 +910,8 @@ const firebaseConfig = {
                 
                 if (data.success) {
                     drivePrivadoFiles = data.files;
+                    localStorage.setItem(cacheKey, JSON.stringify(drivePrivadoFiles));
+                    localStorage.setItem(cacheTimeKey, Date.now().toString());
                     console.log('📁 Drive Privado cargado:', drivePrivadoFiles.length, 'archivos');
                 } else {
                     console.error('Error cargando Drive:', data.error);
