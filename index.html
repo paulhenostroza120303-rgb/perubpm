@@ -1714,6 +1714,114 @@ items.forEach(({ item, packNameLower, fullDateLabel }) => {
                 let parsed = JSON.parse(jsonText);
                 let items;
                 
+                if (Array.isArray(parsed)) {
+                    items = parsed;
+                } else if (parsed.content && Array.isArray(parsed.content)) {
+                    items = parsed.content;
+                } else if (parsed.id && parsed.name) {
+                    items = [parsed];
+                } else {
+                    throw new Error("Formato de JSON no reconocido.");
+                }
+                
+                btn.disabled = true;
+                statusArea.classList.remove('hidden');
+                
+                const API_KEY = "perubpm_admin_2024";
+                let currentIndex = 0;
+                let hasError = false;
+                
+                while (currentIndex < items.length) {
+                    const item = items[currentIndex];
+                    statusLabel.innerText = `SINCRONIZANDO: ${item.slug || item.name || 'ITEM'} (${currentIndex+1}/${items.length})`;
+                    
+                    try {
+                        const response = await fetch('/api/sync-packs', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                apiKey: API_KEY,
+                                target: target,
+                                items: [item],
+                                customImg: customImg,
+                                manualDate: manualDate,
+                                index: 0,
+                                total: items.length
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.done) {
+                            break;
+                        }
+                        
+                        if (result.error) {
+                            const continuar = confirm(
+                                `❌ Error procesando "${item.slug}":\n\n${result.errorMessage}\n\nProcesados: ${currentIndex+1}/${items.length}\n\n¿Continuar con los siguientes?`
+                            );
+                            if (!continuar) {
+                                hasError = true;
+                                break;
+                            }
+                        }
+                        
+                        currentIndex = result.current;
+                        
+                    } catch (err) {
+                        const continuar = confirm(
+                            `❌ Error de conexión: ${err.message}\n\n¿Reintentar?`
+                        );
+                        if (!continuar) {
+                            hasError = true;
+                            break;
+                        }
+                    }
+                }
+                
+                btn.disabled = false;
+                
+                if (!hasError) {
+                    alert("✅ Sincronización Completa\n\nLos packs se han subido a Firebase.");
+                }
+                
+                statusArea.classList.add('hidden');
+                document.getElementById('jsonBox').value = "";
+                document.getElementById('customImgUrl').value = "";
+                changeSection(target);
+                
+            } catch (e) { 
+                console.error('\n❌ ERROR GENERAL:', e);
+                handleError(e, "JSON Inválido o error de formato."); 
+            }
+            
+            btn.disabled = false;
+        }
+            
+            
+            const target = document.getElementById('targetSection').value;
+            const jsonText = document.getElementById('jsonBox').value.trim();
+            const manualDate = document.getElementById('customDate').value;
+            const customImg = document.getElementById('customImgUrl').value.trim();
+            
+            if(!jsonText) {
+                alert("Ingresa el JSON primero.");
+                return;
+            }
+            
+            if (customImg && !validateImageUrl(customImg)) {
+                alert("⚠️ La URL de imagen no es válida o no es de un dominio confiable.");
+                return;
+            }
+            
+            const btn = document.getElementById('upBtn');
+            const statusLabel = document.getElementById('statusLabel');
+            const statusArea = document.getElementById('statusArea');
+
+            try {
+                let parsed = JSON.parse(jsonText);
+                let items;
+                
                 // Verificar si es un pack individual o un array de packs
                 if (Array.isArray(parsed)) {
                     items = parsed;

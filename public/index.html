@@ -1728,7 +1728,6 @@ const firebaseConfig = {
             const statusArea = document.getElementById('statusArea');
 
             try {
-                // Validar que el texto parezca JSON válido
                 const trimmed = jsonText.trim();
                 if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
                     throw new Error("El texto debe comenzar con '{' o '[' para ser JSON válido.");
@@ -1737,66 +1736,66 @@ const firebaseConfig = {
                 let parsed = JSON.parse(trimmed);
                 let items;
                 
-                // Verificar si es un pack individual o un array de packs
                 if (Array.isArray(parsed)) {
                     items = parsed;
                 } else if (parsed.content && Array.isArray(parsed.content)) {
                     items = parsed.content;
                 } else if (parsed.id && parsed.name) {
-                    // Es un pack individual, convertirlo a array
                     items = [parsed];
                 } else {
-                    throw new Error("Formato de JSON no reconocido. Se espera un pack individual o un array de packs.");
+                    throw new Error("Formato de JSON no reconocido.");
                 }
                 
                 btn.disabled = true;
                 statusArea.classList.remove('hidden');
-
-                for (let i = 0; i < items.length; i++) {
-                    const item = items[i];
-                    statusLabel.innerText = `SINCRONIZANDO: ${item.slug || item.name || 'ITEM'} (${i+1}/${items.length})`;
+                
+                const API_KEY = "perubpm_admin_2024";
+                let currentIndex = 0;
+                let hasError = false;
+                
+                while (currentIndex < items.length) {
+                    const item = items[currentIndex];
+                    statusLabel.innerText = `SINCRONIZANDO: ${item.slug || item.name || 'ITEM'} (${currentIndex+1}/${items.length})`;
                     
                     try {
-let packData;
-                        
-                        // Si el item ya tiene información completa CON CONTENIDO, usarlo directamente
-                        if ((item.packages && item.packages.length > 0) || (item.remixes && item.remixes.length > 0)) {
-                            packData = item;
-                        } else {
-                            packData = await fetchWithRetry(API_SLUG + 'slug/' + item.slug);
-                        }
-                        
-                        const processedPack = await processPackageRecursive(packData);
-                        
-                        let totalFiles = 0;
-                        const countFiles = (pkg) => {
-                            if (pkg.remixes) totalFiles += pkg.remixes.length;
-                            if (pkg.packages) pkg.packages.forEach(countFiles);
-                        };
-                        countFiles(processedPack);
-                        
-                        const sanitized = sanitizePackData(processedPack);
-                        
-                        let finalDate = (manualDate) ? `${manualDate}T12:00:00Z` : new Date().toISOString();
-                        
-                        await db.ref(target).push({
-                            data: sanitized,
-                            originalDate: finalDate,
-                            customImage: customImg || null,
-                            timestamp: Date.now()
+                        const response = await fetch('/api/sync-packs', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                apiKey: API_KEY,
+                                target: target,
+                                items: [item],
+                                customImg: customImg,
+                                manualDate: manualDate,
+                                index: 0,
+                                total: items.length
+                            })
                         });
                         
-                        await new Promise(r => setTimeout(r, 1000)); 
+                        const result = await response.json();
+                        
+                        if (result.done) {
+                            break;
+                        }
+                        
+                        if (result.error) {
+                            const continuar = confirm(
+                                `❌ Error procesando "${item.slug}":\n\n${result.errorMessage}\n\nProcesados: ${currentIndex+1}/${items.length}\n\n¿Continuar con los siguientes?`
+                            );
+                            if (!continuar) {
+                                hasError = true;
+                                break;
+                            }
+                        }
+                        
+                        currentIndex = result.current;
                         
                     } catch (err) {
                         const continuar = confirm(
-                            `❌ Error procesando "${item.slug}":\n\n` +
-                            `${err.message}\n\n` +
-                            `Procesados: ${i}/${items.length}\n` +
-                            `¿Continuar con los siguientes packs?`
+                            `❌ Error de conexión: ${err.message}\n\n¿Reintentar?`
                         );
-                        
                         if (!continuar) {
+                            hasError = true;
                             break;
                         }
                     }
@@ -1804,7 +1803,10 @@ let packData;
                 
                 btn.disabled = false;
                 
-                alert("✅ Sincronización Completa\n\nRevisa la consola (F12) para ver detalles de la exploración");
+                if (!hasError) {
+                    alert("✅ Sincronización Completa\n\nLos packs se han subido a Firebase.");
+                }
+                
                 statusArea.classList.add('hidden');
                 document.getElementById('jsonBox').value = "";
                 document.getElementById('customImgUrl').value = "";
