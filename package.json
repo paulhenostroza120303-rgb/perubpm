@@ -8,6 +8,7 @@
     "start": "echo 'No server needed'"
   },
   "dependencies": {
+    "compression": "^1.8.1",
     "googleapis": "^120.0.0"
   }
 }

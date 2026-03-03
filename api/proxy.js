@@ -1,3 +1,8 @@
+import { gzip } from 'zlib';
+import { promisify } from 'util';
+
+const gzipAsync = promisify(gzip);
+
 export default async function handler(req, res) {
   const target = req.query.url;
 
@@ -41,8 +46,16 @@ export default async function handler(req, res) {
     }
 
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Content-Type", "application/json");
     res.setHeader("Cache-Control", "public, max-age=120, s-maxage=120");
+    
+    const acceptGzip = req.headers['accept-encoding']?.includes('gzip');
+    
+    if (acceptGzip) {
+      const compressed = await gzipAsync(Buffer.from(JSON.stringify(data)));
+      res.setHeader('Content-Encoding', 'gzip');
+      res.setHeader('Content-Type', 'application/json');
+      return res.send(compressed);
+    }
     
     return res.status(200).json(data);
 

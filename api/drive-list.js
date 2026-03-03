@@ -1,4 +1,8 @@
 import { google } from 'googleapis';
+import { gzip } from 'zlib';
+import { promisify } from 'util';
+
+const gzipAsync = promisify(gzip);
 
 let serviceAccount;
 try {
@@ -17,7 +21,6 @@ try {
 const FOLDER_ID = '14VOnsz94KDDCtbk7XcoQHvpCAHXl58H7';
 
 export default async function handler(req, res) {
-  res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300');
   
   if (req.method !== 'GET') {
@@ -57,7 +60,18 @@ export default async function handler(req, res) {
       modifiedTime: file.modifiedTime
     }));
 
-    return res.status(200).json({ success: true, files, count: files.length });
+    const data = { success: true, files, count: files.length };
+    
+    const acceptGzip = req.headers['accept-encoding']?.includes('gzip');
+    
+    if (acceptGzip) {
+      const compressed = await gzipAsync(Buffer.from(JSON.stringify(data)));
+      res.setHeader('Content-Encoding', 'gzip');
+      res.setHeader('Content-Type', 'application/json');
+      return res.send(compressed);
+    }
+    
+    return res.status(200).json(data);
 
   } catch (error) {
     console.error('Error completo:', error);
