@@ -225,6 +225,55 @@ Mobile UI
         </div>
     </div>
 
+    <!-- Membership Modal -->
+    <div id="membershipModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-blue-500/30 rounded-3xl max-w-md w-full p-8 relative shadow-2xl shadow-blue-500/20">
+            <button onclick="closeMembershipModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl font-bold">&times;</button>
+            
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-500/20 rounded-full mb-4">
+                    <span class="text-3xl">🎁</span>
+                </div>
+                <h2 class="text-2xl font-black uppercase italic">Membresía VIP</h2>
+                <p class="text-slate-400 text-xs mt-2 uppercase tracking-wider">Acceso completo a todo el contenido</p>
+            </div>
+            
+            <div class="bg-slate-800/50 rounded-2xl p-6 mb-6">
+                <div class="text-center mb-4">
+                    <span class="text-4xl font-black text-blue-400">S/ 5</span>
+                    <span class="text-slate-500 text-sm ml-1">/mes</span>
+                </div>
+                
+                <ul class="space-y-3 text-left">
+                    <li class="flex items-center gap-3 text-sm text-slate-300">
+                        <span class="text-green-400">✓</span> Packs VIP Actualizados Diariamente
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-slate-300">
+                        <span class="text-green-400">✓</span> Remixes Latinos & Peruanos
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-slate-300">
+                        <span class="text-green-400">✓</span> Video Remixes en MP4
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-slate-300">
+                        <span class="text-green-400">✓</span> Descargas Ilimitadas
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-slate-300">
+                        <span class="text-green-400">✓</span> Acceso a Drive Privado
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-slate-300">
+                        <span class="text-green-400">✓</span> Soporte Directo
+                    </li>
+                </ul>
+            </div>
+            
+            <a href="https://www.facebook.com/profile.php?id=61587337634419" target="_blank" onclick="closeMembershipModal()" class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl text-center uppercase tracking-wider transition-all">
+                💬 Contactar en Facebook
+            </a>
+            
+            <p class="text-center text-slate-500 text-[10px] mt-4 uppercase tracking-wider">Pago vía Transferencia o Yape</p>
+        </div>
+    </div>
+
     <div id="appSection" class="hidden p-6 md:p-12 max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-6">
             <div class="text-center md:text-left">
@@ -240,7 +289,7 @@ Mobile UI
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <a href="https://www.facebook.com/profile.php?id=61587337634419" target="_blank" class="btn-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase">🎁 Obtener Membresía</a>
+                    <button onclick="openMembershipModal()" class="btn-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase">🎁 Obtener Membresía</button>
                     <button id="publicLoginBtn" onclick="switchToLogin()" class="btn-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase">🔐 Acceso VIP</button>
                     <button id="adminUploadBtn" onclick="toggleView('admin')" class="btn-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase hidden">Administrar</button>
                     <button id="logoutBtn" onclick="handleLogout()" class="bg-slate-800 text-slate-400 px-6 py-3 rounded-xl text-[10px] font-black uppercase border border-slate-700 hidden">Salir</button>
@@ -2055,6 +2104,14 @@ if (data.remixes) {
             forcePublicMode = true;
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('appSection').classList.remove('hidden');
+        }
+        
+        function openMembershipModal() {
+            document.getElementById('membershipModal').classList.remove('hidden');
+        }
+        
+        function closeMembershipModal() {
+            document.getElementById('membershipModal').classList.add('hidden');
         }
 
         // ---- SISTEMA DE TOKENS SEGUROS ----
