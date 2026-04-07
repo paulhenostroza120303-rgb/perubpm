@@ -1617,6 +1617,7 @@ const firebaseConfig = {
 
                     const pack = item.data;
                     const isFree = item.isFree;
+                    const itemDate = item.originalDate || '';
 
                     const packMatch = searchMatch(pack.name, query);
 
@@ -1626,7 +1627,8 @@ const firebaseConfig = {
                             name: pack.name,
                             section: sectionLabel,
                             isFree: isFree,
-                            item: item
+                            item: item,
+                            date: itemDate
                         });
                     }
 
@@ -1640,7 +1642,8 @@ const firebaseConfig = {
                                 packName: pack.name,
                                 subPath: r.path,
                                 section: sectionLabel,
-                                isFree: isFree
+                                isFree: isFree,
+                                date: itemDate
                             });
                         }
                     });
@@ -1660,8 +1663,8 @@ const firebaseConfig = {
                 });
             }
 
-            foundResults.music.sort((a, b) => a.name.length - b.name.length);
-            foundResults.packs.sort((a, b) => a.name.length - b.name.length);
+            foundResults.music.sort((a, b) => new Date(b.date) - new Date(a.date));
+            foundResults.packs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             musicList.innerHTML = '';
 

@@ -1617,6 +1617,7 @@ items.forEach(({ item, packNameLower, fullDateLabel }) => {
 
                     const pack = item.data;
                     const isFree = item.isFree;
+                    const itemDate = item.originalDate || '';
 
                     const packMatch = searchMatch(pack.name, query);
                     const descMatch = searchMatch(pack.description, query);
@@ -1627,7 +1628,8 @@ items.forEach(({ item, packNameLower, fullDateLabel }) => {
                             name: pack.name,
                             section: sectionLabel,
                             isFree: isFree,
-                            item: item
+                            item: item,
+                            date: itemDate
                         });
                     }
 
@@ -1641,7 +1643,8 @@ items.forEach(({ item, packNameLower, fullDateLabel }) => {
                                 packName: pack.name,
                                 subPath: r.path,
                                 section: sectionLabel,
-                                isFree: isFree
+                                isFree: isFree,
+                                date: itemDate
                             });
                         }
                     });
@@ -1661,8 +1664,8 @@ items.forEach(({ item, packNameLower, fullDateLabel }) => {
                 });
             }
 
-            foundResults.music.sort((a, b) => a.name.length - b.name.length);
-            foundResults.packs.sort((a, b) => a.name.length - b.name.length);
+            foundResults.music.sort((a, b) => new Date(b.date) - new Date(a.date));
+            foundResults.packs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             musicList.innerHTML = '';
 
