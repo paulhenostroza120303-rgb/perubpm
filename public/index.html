@@ -1528,7 +1528,7 @@ const firebaseConfig = {
         }
 
         // ============================================
-        // BÚSQUEDA CON DEBOUNCE
+        // BÚSQUEDA GLOBAL MEJORADA
         // ============================================
 
         function handleSearch() {
@@ -1536,8 +1536,50 @@ const firebaseConfig = {
             searchTimeout = setTimeout(filterPacks, 300);
         }
 
+        function normalizeText(text) {
+            if (!text) return '';
+            return text.toString().toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/g, ' ');
+        }
+
+        function searchMatch(text, query) {
+            if (!text || !query) return false;
+            const normalizedText = normalizeText(text);
+            const normalizedQuery = normalizeText(query);
+            return normalizedText.includes(normalizedQuery);
+        }
+
+        function getAllRemixes(pack, parentPath = '') {
+            const results = [];
+            
+            if (pack.remixes && Array.isArray(pack.remixes)) {
+                pack.remixes.forEach(r => {
+                    if (r && r.name) {
+                        results.push({
+                            name: r.name,
+                            referenceId: r.referenceId,
+                            path: parentPath
+                        });
+                    }
+                });
+            }
+            
+            if (pack.packages && Array.isArray(pack.packages)) {
+                pack.packages.forEach(sub => {
+                    if (sub && sub.name) {
+                        const subPath = parentPath ? `${parentPath} > ${sub.name}` : sub.name;
+                        results.push(...getAllRemixes(sub, subPath));
+                    }
+                });
+            }
+            
+            return results;
+        }
+
         async function filterPacks() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const query = document.getElementById('searchInput').value.trim();
             const musicSection = document.getElementById('musicSearchResults');
             const musicList = document.getElementById('musicHitsList');
             const loader = document.getElementById('searchLoader');
@@ -1549,100 +1591,181 @@ const firebaseConfig = {
             }
 
             loader.classList.remove('hidden');
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 50));
 
-            let allCombined = [
-                ...globalData.packs,
-                ...globalData.membresias,
-                ...globalData.membresias_extranjeras,
-                ...globalData.video_remixes_latinos,
-                ...globalData.backups,
-                ...globalData.editores_peruanos
+            const allSections = [
+                'packs',
+                'membresias',
+                'membresias_extranjeras',
+                'video_remixes_latinos',
+                'backups',
+                'editores_peruanos'
             ];
 
-            const filteredPacks = allCombined.filter(item => 
-                item && item.data && item.data.name && item.data.name.toLowerCase().includes(query)
-            );
-            
-            let foundMusic = [];
-            
-            // Buscar en remixes desde 2 caracteres
-            if (query.length >= 2) {
-                allCombined.forEach(packItem => {
-                    // Validar que packItem y packItem.data existan
-                    if (!packItem || !packItem.data) return;
-                    
-                    const p = packItem.data;
-                    const originLabel = sectionLabels[packItem.section];
-                    const isFreePack = packItem.isFree;
-                    const packDate = packItem.originalDate || '';
+            let foundResults = {
+                packs: [],
+                music: [],
+                drive: []
+            };
 
-                    if (p.remixes) {
-                        p.remixes.forEach(r => {
-                            if (r && r.name && r.name.toLowerCase().includes(query)) 
-                                foundMusic.push({ ...r, packName: p.name, section: originLabel, isFree: isFreePack, itemDate: r.metadata?.created || packDate });
+            allSections.forEach(section => {
+                const items = globalData[section] || [];
+                const sectionLabel = sectionLabels[section] || section;
+
+                items.forEach(item => {
+                    if (!item || !item.data) return;
+
+                    const pack = item.data;
+                    const isFree = item.isFree;
+
+                    const packMatch = searchMatch(pack.name, query);
+
+                    if (packMatch) {
+                        foundResults.packs.push({
+                            type: 'pack',
+                            name: pack.name,
+                            section: sectionLabel,
+                            isFree: isFree,
+                            item: item
                         });
                     }
-                    if (p.packages) {
-                        p.packages.forEach(sub => {
-                            if (sub && sub.remixes) {
-                                sub.remixes.forEach(r => {
-                                    if (r && r.name && r.name.toLowerCase().includes(query)) 
-                                        foundMusic.push({ ...r, packName: `${p.name} > ${sub.name}`, section: originLabel, isFree: isFreePack, itemDate: r.metadata?.created || packDate });
-                                });
-                            }
-                        });
-                    }
+
+                    const allRemixes = getAllRemixes(pack);
+                    allRemixes.forEach(r => {
+                        if (searchMatch(r.name, query)) {
+                            foundResults.music.push({
+                                type: 'music',
+                                name: r.name,
+                                referenceId: r.referenceId,
+                                packName: pack.name,
+                                subPath: r.path,
+                                section: sectionLabel,
+                                isFree: isFree
+                            });
+                        }
+                    });
                 });
-                
-                // Ordenar por fecha (más reciente primero)
-                foundMusic.sort((a, b) => {
-                    const dateA = new Date(a.itemDate || 0);
-                    const dateB = new Date(b.itemDate || 0);
-                    return dateB - dateA;
+            });
+
+            if (drivePrivadoFiles && drivePrivadoFiles.length > 0 && query.length >= 2) {
+                drivePrivadoFiles.forEach(file => {
+                    if (file && file.name && searchMatch(file.name, query)) {
+                        foundResults.drive.push({
+                            type: 'drive',
+                            name: file.name,
+                            id: file.id,
+                            size: file.size
+                        });
+                    }
                 });
             }
 
-            renderPacks(filteredPacks);
-            loader.classList.add('hidden');
+            foundResults.music.sort((a, b) => a.name.length - b.name.length);
+            foundResults.packs.sort((a, b) => a.name.length - b.name.length);
 
-            if (foundMusic.length > 0) {
-                musicSection.classList.remove('hidden');
-                musicList.innerHTML = foundMusic.slice(0, 50).map(m => {
+            musicList.innerHTML = '';
+
+            if (foundResults.packs.length > 0) {
+                const packHeader = document.createElement('div');
+                packHeader.innerHTML = `<h3 class="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em] mb-3">📦 Packs (${foundResults.packs.length})</h3>`;
+                musicList.appendChild(packHeader);
+
+                foundResults.packs.slice(0, 20).forEach(pack => {
+                    const div = document.createElement('div');
+                    div.className = 'item-row p-4 rounded-xl flex justify-between items-center gap-4 cursor-pointer hover:bg-purple-500/10 transition-all';
+                    div.innerHTML = `
+                        <div class="truncate flex-1">
+                            <span class="text-[8px] font-black text-purple-400 uppercase">${pack.section}</span>
+                            <h5 class="text-[10px] font-black uppercase truncate">${highlightMatch(pack.name, query)}</h5>
+                        </div>
+                        <button onclick="openPackById('${pack.item.section}', '${pack.item.id}', ${pack.isFree})" class="bg-purple-600/20 text-purple-400 px-4 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-purple-600 hover:text-white transition-all">ABRIR</button>
+                    `;
+                    div.onclick = () => openPackById(pack.item.section, pack.item.id, pack.isFree);
+                    musicList.appendChild(div);
+                });
+            }
+
+            if (foundResults.music.length > 0) {
+                const musicHeader = document.createElement('div');
+                musicHeader.innerHTML = `<h3 class="text-[10px] font-black text-green-400 uppercase tracking-[0.3em] mb-3 mt-4">🎵 Músicas (${foundResults.music.length})</h3>`;
+                musicList.appendChild(musicHeader);
+
+                foundResults.music.slice(0, 100).forEach(m => {
                     let actionBtn;
                     const refId = m.referenceId;
                     const fileName = encodeURIComponent(m.name);
                     
                     if (currentUserEmail) {
-                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-blue-600/20 text-blue-400 px-6 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all">Descargar</button>`;
+                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-green-600/20 text-green-400 px-4 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">DESCARGAR</button>`;
                     } else if (m.isFree) {
-                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-green-600/20 text-green-400 px-6 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">🆓 Gratis</button>`;
+                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-green-600/20 text-green-400 px-4 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">🆓 GRATIS</button>`;
                     } else {
-                        actionBtn = `<button onclick="switchToLogin()" class="bg-slate-700/20 text-slate-400 px-6 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-slate-600 hover:text-white transition-all border border-slate-600">🔒 VIP</button>`;
+                        actionBtn = `<button onclick="switchToLogin()" class="bg-slate-700/20 text-slate-400 px-4 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-slate-600 hover:text-white transition-all border border-slate-600">🔒 VIP</button>`;
                     }
                     
-                    return `
-                    <div class="item-row p-4 rounded-xl flex justify-between items-center gap-4">
-                        <div class="flex items-center gap-3 flex-1">
-                            <button onclick="playAudio('${refId}', '${fileName}', this)" class="play-btn bg-blue-600/20 text-blue-400 px-3 py-2 rounded-lg text-xs font-black uppercase hover:bg-blue-600 hover:text-white transition-all w-10">▶</button>
-                            <div class="truncate flex-1">
-                                <span class="search-hit-badge${m.isFree ? ' free' : ''}">${m.section}${m.isFree ? ' 🆓' : ''}</span>
-                                <h5 class="text-[10px] font-black uppercase truncate">${m.name}</h5>
-                                <p class="text-[7px] text-slate-500 font-bold uppercase truncate">${m.packName}</p>
-                                <div class="player-progress hidden" id="progress-${refId}" style="margin-top: 4px;">
-                                    <div class="progress-bar" style="height: 3px; background: #334155; border-radius: 2px; overflow: hidden;">
-                                        <div class="progress-fill" style="height: 100%; background: #3b82f6; width: 0%; transition: width 0.5s;"></div>
-                                    </div>
-                                    <div class="progress-time text-[6px] text-slate-500 mt-1">0:00 / 1:00</div>
-                                </div>
-                            </div>
+                    const div = document.createElement('div');
+                    div.className = 'item-row p-4 rounded-xl flex justify-between items-center gap-4';
+                    div.innerHTML = `
+                        <div class="truncate flex-1">
+                            <span class="text-[8px] font-bold text-green-500 uppercase">${m.section}</span>
+                            <h5 class="text-[10px] font-black uppercase truncate">${highlightMatch(m.name, query)}</h5>
+                            <p class="text-[7px] text-slate-500 font-bold uppercase truncate">${m.packName}${m.subPath ? ' > ' + m.subPath : ''}</p>
                         </div>
                         ${actionBtn}
-                    </div>
-                `}).join('');
-            } else {
-                musicSection.classList.add('hidden');
+                    `;
+                    musicList.appendChild(div);
+                });
             }
+
+            if (foundResults.drive.length > 0) {
+                const driveHeader = document.createElement('div');
+                driveHeader.innerHTML = `<h3 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-3 mt-4">📁 Drive Privado (${foundResults.drive.length})</h3>`;
+                musicList.appendChild(driveHeader);
+
+                foundResults.drive.slice(0, 30).forEach(file => {
+                    const div = document.createElement('div');
+                    div.className = 'item-row p-4 rounded-xl flex justify-between items-center gap-4';
+                    div.innerHTML = `
+                        <div class="truncate flex-1">
+                            <span class="text-[8px] font-bold text-blue-400 uppercase">PRIVADO</span>
+                            <h5 class="text-[10px] font-black uppercase truncate">${highlightMatch(file.name, query)}</h5>
+                            <p class="text-[7px] text-slate-500 font-bold uppercase">${formatFileSize(file.size)}</p>
+                        </div>
+                        <button onclick="openDriveFile('${file.id}')" class="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all">DESCARGAR</button>
+                    `;
+                    musicList.appendChild(div);
+                });
+            }
+
+            if (foundResults.packs.length === 0 && foundResults.music.length === 0 && foundResults.drive.length === 0) {
+                musicList.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-slate-500 text-lg font-bold">Sin resultados para "${query}"</p>
+                        <p class="text-slate-600 text-xs mt-2">Intenta con otras palabras o verifica la ortografía</p>
+                    </div>
+                `;
+            }
+
+            musicSection.classList.remove('hidden');
+            loader.classList.add('hidden');
+            renderPacks([]);
+        }
+
+        function highlightMatch(text, query) {
+            if (!text || !query) return text;
+            const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+            return text.replace(regex, '<mark class="bg-yellow-500/30 text-yellow-300">$1</mark>');
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '';
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
         }
 
         // ============================================
@@ -1895,6 +2018,13 @@ let packData;
             renderFolder(data);
             if (updateHash) {
                 history.pushState({ section: currentSection, subfolder: data.name }, '', `/${currentSection}/${encodeURIComponent(data.name)}`);
+            }
+        }
+
+        function openDriveFile(fileId) {
+            const file = drivePrivadoFiles.find(f => f.id === fileId);
+            if (file) {
+                window.open(`/api/drive-download?fileId=${fileId}`, '_blank');
             }
         }
         
