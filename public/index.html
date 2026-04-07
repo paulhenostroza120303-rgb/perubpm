@@ -1699,20 +1699,23 @@ const firebaseConfig = {
                     const fileName = encodeURIComponent(m.name);
                     
                     if (currentUserEmail) {
-                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-green-600/20 text-green-400 px-4 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">DESCARGAR</button>`;
+                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-green-600/20 text-green-400 px-3 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">DESCARGAR</button>`;
                     } else if (m.isFree) {
-                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-green-600/20 text-green-400 px-4 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">🆓 GRATIS</button>`;
+                        actionBtn = `<button onclick="downloadWithToken('${refId}', '${fileName}', this)" class="bg-green-600/20 text-green-400 px-3 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">🆓</button>`;
                     } else {
-                        actionBtn = `<button onclick="switchToLogin()" class="bg-slate-700/20 text-slate-400 px-4 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-slate-600 hover:text-white transition-all border border-slate-600">🔒 VIP</button>`;
+                        actionBtn = `<button onclick="switchToLogin()" class="bg-slate-700/20 text-slate-400 px-3 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-slate-600 hover:text-white transition-all border border-slate-600">🔒</button>`;
                     }
                     
                     const div = document.createElement('div');
                     div.className = 'item-row p-4 rounded-xl flex justify-between items-center gap-4';
                     div.innerHTML = `
-                        <div class="truncate flex-1">
-                            <span class="text-[8px] font-bold text-green-500 uppercase">${m.section}</span>
-                            <h5 class="text-[10px] font-black uppercase truncate">${highlightMatch(m.name, query)}</h5>
-                            <p class="text-[7px] text-slate-500 font-bold uppercase truncate">${m.packName}${m.subPath ? ' > ' + m.subPath : ''}</p>
+                        <div class="flex items-center gap-3 flex-1">
+                            <button onclick="playAudio('${refId}', '${fileName}', this)" class="play-btn bg-blue-600/20 text-blue-400 px-3 py-2 rounded-lg text-xs font-black uppercase hover:bg-blue-600 hover:text-white transition-all w-10">▶</button>
+                            <div class="truncate flex-1">
+                                <span class="text-[8px] font-bold text-green-500 uppercase">${m.section}</span>
+                                <h5 class="text-[10px] font-black uppercase truncate">${highlightMatch(m.name, query)}</h5>
+                                <p class="text-[7px] text-slate-500 font-bold uppercase truncate">${m.packName}${m.subPath ? ' > ' + m.subPath : ''}</p>
+                            </div>
                         </div>
                         ${actionBtn}
                     `;
