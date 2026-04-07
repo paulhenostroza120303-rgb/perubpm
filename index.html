@@ -1671,7 +1671,7 @@ items.forEach(({ item, packNameLower, fullDateLabel }) => {
                 packHeader.innerHTML = `<h3 class="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em] mb-3">📦 Packs (${foundResults.packs.length})</h3>`;
                 musicList.appendChild(packHeader);
 
-                foundResults.packs.slice(0, 20).forEach(pack => {
+                foundResults.packs.forEach(pack => {
                     const div = document.createElement('div');
                     div.className = 'item-row p-4 rounded-xl flex justify-between items-center gap-4 cursor-pointer hover:bg-purple-500/10 transition-all';
                     div.innerHTML = `
@@ -1691,7 +1691,7 @@ items.forEach(({ item, packNameLower, fullDateLabel }) => {
                 musicHeader.innerHTML = `<h3 class="text-[10px] font-black text-green-400 uppercase tracking-[0.3em] mb-3 mt-4">🎵 Músicas (${foundResults.music.length})</h3>`;
                 musicList.appendChild(musicHeader);
 
-                foundResults.music.slice(0, 100).forEach(m => {
+                foundResults.music.forEach(m => {
                     let actionBtn;
                     const refId = m.referenceId;
                     const fileName = encodeURIComponent(m.name);
@@ -1723,7 +1723,7 @@ items.forEach(({ item, packNameLower, fullDateLabel }) => {
                 driveHeader.innerHTML = `<h3 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-3 mt-4">📁 Drive Privado (${foundResults.drive.length})</h3>`;
                 musicList.appendChild(driveHeader);
 
-                foundResults.drive.slice(0, 30).forEach(file => {
+                foundResults.drive.forEach(file => {
                     const div = document.createElement('div');
                     div.className = 'item-row p-4 rounded-xl flex justify-between items-center gap-4';
                     div.innerHTML = `
