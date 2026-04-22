@@ -13,7 +13,7 @@ const s3 = new S3Client({
 const BUCKET = "perubpm";
 
 export const config = {
-  maxDuration: 180
+  maxDuration: 120
 };
 
 async function existsInB2(key) {
@@ -52,22 +52,18 @@ export default async function handler(req, res) {
     const cached = await existsInB2(b2Key);
     
     if (cached) {
+      console.log('📦 B2 HIT:', b2Key);
       const url = await getSignedUrl(s3, new GetObjectCommand({
         Bucket: BUCKET,
         Key: b2Key
       }), { expiresIn: 86400 });
-
-      const response = await fetch(url);
-      const contentType = response.headers.get('content-type') || 'application/octet-stream';
-      const arrayBuffer = await response.arrayBuffer();
-
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
-      res.setHeader('Content-Length', arrayBuffer.byteLength);
-      res.setHeader('Cache-Control', 'private, max-age=31536000');
       
-      return res.send(Buffer.from(arrayBuffer));
+      const downloadUrl = url + (url.includes('?') ? '&' : '?') + 'response-content-disposition=attachment';
+      
+      return res.redirect(downloadUrl);
     }
+    
+    console.log('☁️ B2 MISS:', b2Key);
     
     const apiUrl = `https://api.perubpm.com/catalog/drive/download/${ref}?fileName=${encodeURIComponent(fileName)}`;
     const response = await fetch(apiUrl);
@@ -81,11 +77,14 @@ export default async function handler(req, res) {
     
     await uploadToB2(b2Key, arrayBuffer, contentType);
     
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
-    res.setHeader('Content-Length', arrayBuffer.byteLength);
+    const url = await getSignedUrl(s3, new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: b2Key
+    }), { expiresIn: 86400 });
     
-    return res.send(Buffer.from(arrayBuffer));
+    const downloadUrl = url + (url.includes('?') ? '&' : '?') + 'response-content-disposition=attachment';
+    
+    return res.redirect(downloadUrl);
 
   } catch (error) {
     console.error('Error:', error);
