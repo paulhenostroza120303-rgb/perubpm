@@ -15,7 +15,7 @@ const B2_ACCOUNTS = [
 ].filter(a => a.keyId && a.key);
 
 export const config = {
-  maxDuration: 180
+  maxDuration: 120
 };
 
 function createS3Client(keyId, key) {
@@ -88,22 +88,11 @@ export default async function handler(req, res) {
     
     if (found) {
       console.log('📦 B2 HIT:', found.bucket, b2Key);
-      
       const url = await getSignedUrl(found.s3, new GetObjectCommand({
         Bucket: found.bucket,
         Key: b2Key
-      }), { expiresIn: 3600 });
-      
-      const response = await fetch(url);
-      const contentType = response.headers.get('content-type') || 'audio/mpeg';
-      const buffer = await response.arrayBuffer();
-
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
-      res.setHeader('Content-Length', buffer.byteLength);
-      res.setHeader('Cache-Control', 'private, max-age=31536000');
-      
-      return res.send(Buffer.from(buffer));
+      }), { expiresIn: 86400 });
+      return res.redirect(url);
     }
     
     console.log('☁️ B2 MISS:', b2Key);
@@ -121,11 +110,12 @@ export default async function handler(req, res) {
     const uploaded = await uploadToAvailableBucket(b2Key, arrayBuffer, contentType);
     console.log('✅ Uploaded to B2:', uploaded.bucket, b2Key);
     
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
-    res.setHeader('Content-Length', arrayBuffer.byteLength);
+    const url = await getSignedUrl(uploaded.s3, new GetObjectCommand({
+      Bucket: uploaded.bucket,
+      Key: b2Key
+    }), { expiresIn: 86400 });
     
-    return res.send(Buffer.from(arrayBuffer));
+    return res.redirect(url);
 
   } catch (error) {
     console.error('Error:', error);
