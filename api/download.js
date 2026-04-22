@@ -15,7 +15,7 @@ const B2_ACCOUNTS = [
 ].filter(a => a.keyId && a.key);
 
 export const config = {
-  maxDuration: 120
+  maxDuration: 180
 };
 
 function createS3Client(keyId, key) {
@@ -49,7 +49,7 @@ async function findAvailableBucket(b2Key) {
     const s3 = createS3Client(account.keyId, account.key);
     const exists = await existsInB2(s3, account.name, b2Key);
     if (exists) {
-      return { s3, bucket: account.name, found: true };
+      return { s3, bucket: account.name };
     }
   }
   return null;
@@ -88,13 +88,22 @@ export default async function handler(req, res) {
     
     if (found) {
       console.log('📦 B2 HIT:', found.bucket, b2Key);
+      
       const url = await getSignedUrl(found.s3, new GetObjectCommand({
         Bucket: found.bucket,
-        Key: b2Key,
-        ResponseContentDisposition: `attachment; filename="${fileName}"`
-      }), { expiresIn: 86400 });
-      console.log('URL generada:', url.substring(0, 100) + '...');
-      return res.redirect(url);
+        Key: b2Key
+      }), { expiresIn: 3600 });
+      
+      const response = await fetch(url);
+      const contentType = response.headers.get('content-type') || 'audio/mpeg';
+      const buffer = await response.arrayBuffer();
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+      res.setHeader('Content-Length', buffer.byteLength);
+      res.setHeader('Cache-Control', 'private, max-age=31536000');
+      
+      return res.send(Buffer.from(buffer));
     }
     
     console.log('☁️ B2 MISS:', b2Key);
@@ -112,14 +121,11 @@ export default async function handler(req, res) {
     const uploaded = await uploadToAvailableBucket(b2Key, arrayBuffer, contentType);
     console.log('✅ Uploaded to B2:', uploaded.bucket, b2Key);
     
-const url = await getSignedUrl(uploaded.s3, new GetObjectCommand({
-        Bucket: uploaded.bucket,
-        Key: b2Key,
-        ResponseContentDisposition: `attachment; filename="${fileName}"`
-      }), { expiresIn: 86400 });
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.setHeader('Content-Length', arrayBuffer.byteLength);
     
-    console.log('URL generada:', url.substring(0, 100) + '...');
-    return res.redirect(url);
+    return res.send(Buffer.from(arrayBuffer));
 
   } catch (error) {
     console.error('Error:', error);
