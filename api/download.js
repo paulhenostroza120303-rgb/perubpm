@@ -92,7 +92,9 @@ export default async function handler(req, res) {
         Bucket: found.bucket,
         Key: b2Key
       }), { expiresIn: 86400 });
-      return res.redirect(url);
+      
+      const downloadUrl = url + '&response-content-disposition=attachment';
+      return res.redirect(downloadUrl);
     }
     
     console.log('☁️ B2 MISS:', b2Key);
@@ -115,7 +117,8 @@ export default async function handler(req, res) {
       Key: b2Key
     }), { expiresIn: 86400 });
     
-    return res.redirect(url);
+    const downloadUrl = url + '&response-content-disposition=attachment';
+    return res.redirect(downloadUrl);
 
   } catch (error) {
     console.error('Error:', error);
