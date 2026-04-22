@@ -13,7 +13,7 @@ const s3 = new S3Client({
 const BUCKET = "perubpm";
 
 export const config = {
-  maxDuration: 120
+  maxDuration: 180
 };
 
 async function existsInB2(key) {
@@ -21,23 +21,17 @@ async function existsInB2(key) {
     await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
     return true;
   } catch (e) {
-    console.log('existsInB2 error:', e.name, e.message);
-    return false;
+    return e.$metadata?.httpStatusCode !== 404;
   }
 }
 
 async function uploadToB2(key, data, type) {
-  try {
-    await s3.send(new PutObjectCommand({
-      Bucket: BUCKET,
-      Key: key,
-      Body: data,
-      ContentType: type || 'application/octet-stream'
-    }));
-  } catch (e) {
-    console.log('uploadToB2 error:', e.name, e.message);
-    throw e;
-  }
+  await s3.send(new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    Body: data,
+    ContentType: type || 'application/octet-stream'
+  }));
 }
 
 export default async function handler(req, res) {
@@ -54,50 +48,47 @@ export default async function handler(req, res) {
   const fileName = decodeURIComponent(name);
   const b2Key = `${ref}/${fileName}`;
 
-  console.log('Download request:', { ref, name, b2Key });
-
   try {
     const cached = await existsInB2(b2Key);
     
     if (cached) {
-      console.log('📦 B2 HIT:', b2Key);
       const url = await getSignedUrl(s3, new GetObjectCommand({
         Bucket: BUCKET,
         Key: b2Key
       }), { expiresIn: 86400 });
+
+      const response = await fetch(url);
+      const contentType = response.headers.get('content-type') || 'application/octet-stream';
+      const arrayBuffer = await response.arrayBuffer();
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+      res.setHeader('Content-Length', arrayBuffer.byteLength);
+      res.setHeader('Cache-Control', 'private, max-age=31536000');
       
-      return res.redirect(url);
+      return res.send(Buffer.from(arrayBuffer));
     }
     
-    console.log('☁️ B2 MISS:', b2Key);
-    
     const apiUrl = `https://api.perubpm.com/catalog/drive/download/${ref}?fileName=${encodeURIComponent(fileName)}`;
-    console.log('Fetching from API:', apiUrl);
-    
     const response = await fetch(apiUrl);
     
     if (!response.ok) {
-      console.error('API Error:', response.status);
       return res.redirect('/?error=archivo_no_encontrado');
     }
     
-    const contentType = response.headers.get('content-type') || 'application/octet-stream';
+    const contentType = response.headers.get('content-type') || 'audio/mpeg';
     const arrayBuffer = await response.arrayBuffer();
     
-    console.log('📤 Uploading to B2:', b2Key, arrayBuffer.byteLength, 'bytes');
     await uploadToB2(b2Key, arrayBuffer, contentType);
-    console.log('✅ Uploaded to B2:', b2Key);
     
-    const url = await getSignedUrl(s3, new GetObjectCommand({
-      Bucket: BUCKET,
-      Key: b2Key
-    }), { expiresIn: 86400 });
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.setHeader('Content-Length', arrayBuffer.byteLength);
     
-    return res.redirect(url);
+    return res.send(Buffer.from(arrayBuffer));
 
   } catch (error) {
-    console.error('❌ Error completo:', error);
-    console.error('Stack:', error.stack);
+    console.error('Error:', error);
     return res.redirect('/?error=error_descarga');
   }
 }
