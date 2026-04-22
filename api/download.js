@@ -90,11 +90,10 @@ export default async function handler(req, res) {
       console.log('📦 B2 HIT:', found.bucket, b2Key);
       const url = await getSignedUrl(found.s3, new GetObjectCommand({
         Bucket: found.bucket,
-        Key: b2Key
+        Key: b2Key,
+        ResponseContentDisposition: `attachment; filename="${fileName}"`
       }), { expiresIn: 86400 });
-      
-      const downloadUrl = url + '&response-content-disposition=attachment';
-      return res.redirect(downloadUrl);
+      return res.redirect(url);
     }
     
     console.log('☁️ B2 MISS:', b2Key);
@@ -114,11 +113,11 @@ export default async function handler(req, res) {
     
     const url = await getSignedUrl(uploaded.s3, new GetObjectCommand({
       Bucket: uploaded.bucket,
-      Key: b2Key
+      Key: b2Key,
+      ResponseContentDisposition: `attachment; filename="${fileName}"`
     }), { expiresIn: 86400 });
     
-    const downloadUrl = url + '&response-content-disposition=attachment';
-    return res.redirect(downloadUrl);
+    return res.redirect(url);
 
   } catch (error) {
     console.error('Error:', error);
