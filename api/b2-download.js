@@ -1,25 +1,24 @@
 import { S3Client, HeadObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const s3 = new S3Client({
+const s3Client = new S3Client({
   endpoint: "https://s3.us-east-005.backblazeb2.com",
   region: "us-east-005",
   credentials: {
     accessKeyId: process.env.B2_ACCESS_KEY_ID,
     secretAccessKey: process.env.B2_APPLICATION_KEY
-  },
-  forcePathStyle: true
+  }
 });
 
 const BUCKET = "perubpmCreado";
 
 export const config = {
-  maxDuration: 120
+  maxDuration: 60
 };
 
 async function existsInB2(key) {
   try {
-    await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
+    await s3Client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
     return true;
   } catch (e) {
     return e.$metadata?.httpStatusCode !== 404;
@@ -27,12 +26,16 @@ async function existsInB2(key) {
 }
 
 async function uploadToB2(key, data, type) {
-  await s3.send(new PutObjectCommand({
+  await s3Client.send(new PutObjectCommand({
     Bucket: BUCKET,
     Key: key,
     Body: data,
     ContentType: type || 'application/octet-stream'
   }));
+}
+
+function getB2Url(key) {
+  return `https://s3.us-east-005.backblazeb2.com/${BUCKET}/${key}`;
 }
 
 export default async function handler(req, res) {
@@ -53,16 +56,16 @@ export default async function handler(req, res) {
     const cached = await existsInB2(b2Key);
     
     if (cached) {
-      console.log('📦 B2 HIT:', b2Key);
-      const url = await getSignedUrl(s3, new GetObjectCommand({
+      console.log('📦 B2 Cache HIT:', b2Key);
+      const url = await getSignedUrl(s3Client, new GetObjectCommand({
         Bucket: BUCKET,
         Key: b2Key
-      }), { expiresIn: 86400 });
+      }), { expiresIn: 3600 });
       
       return res.redirect(url);
     }
     
-    console.log('☁️ B2 MISS:', b2Key);
+    console.log('☁️ B2 Cache MISS:', b2Key);
     
     const apiUrl = `https://api.perubpm.com/catalog/drive/download/${ref}?fileName=${encodeURIComponent(fileName)}`;
     const response = await fetch(apiUrl);
@@ -75,14 +78,13 @@ export default async function handler(req, res) {
     const contentType = response.headers.get('content-type') || 'audio/mpeg';
     const arrayBuffer = await response.arrayBuffer();
     
-    console.log('📤 Subiendo a B2:', b2Key);
     await uploadToB2(b2Key, arrayBuffer, contentType);
     console.log('✅ Subido a B2:', b2Key);
     
-    const url = await getSignedUrl(s3, new GetObjectCommand({
+    const url = await getSignedUrl(s3Client, new GetObjectCommand({
       Bucket: BUCKET,
       Key: b2Key
-    }), { expiresIn: 86400 });
+    }), { expiresIn: 3600 });
     
     return res.redirect(url);
 

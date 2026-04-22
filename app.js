@@ -137,7 +137,7 @@ function openFolder(data) {
             row.className = 'item-row p-5 rounded-2xl flex justify-between items-center';
             row.innerHTML = `
                 <span class="text-[10px] font-bold uppercase">${f.name}</span>
-                <a href="https://api.perubpm.com/catalog/drive/download/${f.referenceId}?fileName=${encodeURIComponent(f.name)}" target="_blank" class="bg-blue-600 px-4 py-2 rounded-lg text-[9px] font-black">DESCUALGAR</a>
+                <a href="/api/download?ref=${f.referenceId}&name=${encodeURIComponent(f.name)}" target="_blank" class="bg-blue-600 px-4 py-2 rounded-lg text-[9px] font-black">DESCARGAR</a>
             `;
             container.appendChild(row);
         });
