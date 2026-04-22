@@ -90,11 +90,10 @@ export default async function handler(req, res) {
       console.log('📦 B2 HIT:', found.bucket, b2Key);
       const url = await getSignedUrl(found.s3, new GetObjectCommand({
         Bucket: found.bucket,
-        Key: b2Key
-      }), { 
-        expiresIn: 86400,
-        responseContentDisposition: `attachment; filename="${encodeURIComponent(fileName)}"`
-      });
+        Key: b2Key,
+        ResponseContentDisposition: `attachment; filename="${fileName}"`
+      }), { expiresIn: 86400 });
+      console.log('URL generada:', url.substring(0, 100) + '...');
       return res.redirect(url);
     }
     
@@ -113,14 +112,13 @@ export default async function handler(req, res) {
     const uploaded = await uploadToAvailableBucket(b2Key, arrayBuffer, contentType);
     console.log('✅ Uploaded to B2:', uploaded.bucket, b2Key);
     
-    const url = await getSignedUrl(uploaded.s3, new GetObjectCommand({
-      Bucket: uploaded.bucket,
-      Key: b2Key
-    }), { 
-      expiresIn: 86400,
-      responseContentDisposition: `attachment; filename="${encodeURIComponent(fileName)}"`
-    });
+const url = await getSignedUrl(uploaded.s3, new GetObjectCommand({
+        Bucket: uploaded.bucket,
+        Key: b2Key,
+        ResponseContentDisposition: `attachment; filename="${fileName}"`
+      }), { expiresIn: 86400 });
     
+    console.log('URL generada:', url.substring(0, 100) + '...');
     return res.redirect(url);
 
   } catch (error) {
