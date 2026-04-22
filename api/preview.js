@@ -11,7 +11,7 @@ const s3 = new S3Client({
   forcePathStyle: true
 });
 
-const BUCKET = "perubpmCreado";
+const BUCKET = "perubpm";
 
 const MAX_BYTES = {
   'mp3': 3000000,

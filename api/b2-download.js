@@ -10,7 +10,7 @@ const s3Client = new S3Client({
   }
 });
 
-const BUCKET = "perubpmCreado";
+const BUCKET = "perubpm";
 
 export const config = {
   maxDuration: 60
