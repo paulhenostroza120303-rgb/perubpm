@@ -5,10 +5,9 @@ const s3 = new S3Client({
   endpoint: "https://s3.us-east-005.backblazeb2.com",
   region: "us-east-005",
   credentials: {
-    accessKeyId: process.env.B2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.B2_APPLICATION_KEY
-  },
-  forcePathStyle: true
+    accessKeyId: process.env.B2_ACCESS_KEY_ID || "00535f8a9da3a490000000002",
+    secretAccessKey: process.env.B2_APPLICATION_KEY || "K0055pj4u8TZy5U0twuBjHajDHKUg6A"
+  }
 });
 
 const BUCKET = "perubpm";
@@ -63,9 +62,21 @@ export default async function handler(req, res) {
     
     if (cached) {
       console.log('📦 Preview B2 HIT:', b2Key);
+      const url = await getSignedUrl(s3, new GetObjectCommand({
+        Bucket: BUCKET,
+        Key: b2Key
+      }), { expiresIn: 3600 });
+      
+      const response = await fetch(url);
+      const contentType = response.headers.get('content-type') || 'audio/mpeg';
+      const buffer = await response.arrayBuffer();
+
       res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("Cache-Control", "public, max-age=86400");
-      return res.redirect(`https://s3.us-east-005.backblazeb2.com/${BUCKET}/${b2Key}`);
+      
+      return res.send(Buffer.from(buffer));
     }
     
     console.log('☁️ Preview B2 MISS:', b2Key);
@@ -96,9 +107,10 @@ export default async function handler(req, res) {
     
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Content-Type", contentType);
+    res.setHeader("Accept-Ranges", "bytes");
     res.setHeader("Cache-Control", "public, max-age=86400");
     
-    return res.redirect(`https://s3.us-east-005.backblazeb2.com/${BUCKET}/${b2Key}`);
+    return res.send(buffer);
 
   } catch (err) {
     console.error('Preview error:', err);
